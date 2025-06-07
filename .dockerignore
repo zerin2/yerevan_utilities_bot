@@ -1,0 +1,90 @@
+# Исключаем виртуальные окружения
+venv/
+*/venv/
+*.pyc
+__pycache__/
+
+# Исключаем файлы окружения
+.env
+*.env
+*.env.*
+
+# Исключаем временные файлы и директории
+*.swp
+*.swo
+*.tmp
+*.temp
+*.bak
+*.backup
+*.log
+logs/
+*.sqlite3
+*.db
+*.pid
+.DS_Store
+
+# Исключаем папки сборки и промежуточные файлы
+build/
+dist/
+*.egg-info/
+*.manifest
+*.spec
+
+# Исключаем файлы IDE
+.idea/
+.vscode/
+*.iml
+
+# Исключаем временные файлы системы
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.nfs*
+
+# Исключаем кэш Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Исключаем данные для тестирования и документации
+tests/
+*.test
+*.out
+coverage/
+.coverage
+*.cover
+htmlcov/
+
+# Исключаем данные Docker
+docker-compose.override.yml
+.dockerignore
+Dockerfile.dev
+
+# Исключаем данные Git
+.git/
+.gitignore
+.gitattributes
+
+# Исключаем временные файлы и папки npm/Node.js (если используется в проекте)
+node_modules/
+npm-debug.log
+yarn.lock
+package-lock.json
+.pnpm-debug.log
+
+# Исключаем файлы редактора Vim
+*.swp
+*.swo
+
+# Исключаем конфигурационные файлы для CI/CD, если не нужны
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Исключаем сторонние конфигурации
+*.config.json
+*.key
+*.pem
+*.crt
