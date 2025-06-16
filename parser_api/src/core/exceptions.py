@@ -1,3 +1,5 @@
+
+
 class CustomBaseException(Exception):
     def __init__(self, message):
         self.message = message
@@ -86,9 +88,29 @@ class RedisTaskNotFound(CustomBaseException):
         super().__init__(message)
 
 
+class ProxyList404(CustomBaseException):
+    pass
+
+
 class DuplicateAccountError(CustomBaseException):
     def __init__(
             self,
             message='Найдены дублирующиеся аккаунты.',
     ):
         super().__init__(message)
+
+
+class ApiError(CustomBaseException):
+    pass
+
+
+class ApiResponseStatusError(CustomBaseException):
+    pass
+
+
+class ApiResponseDataError(CustomBaseException):
+    pass
+
+
+class ApiProxyListError(CustomBaseException):
+    pass

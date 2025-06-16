@@ -9,7 +9,11 @@ from typing import Any, Awaitable, Callable, Optional
 from pydantic import BaseModel, ValidationError
 from redis.asyncio import Redis
 
-from workers.async_rq_worker.enums import QueueStatus, WorkerMessage, FieldLength
+from workers.async_rq_worker.enums import (
+    FieldLength,
+    QueueStatus,
+    WorkerMessage,
+)
 
 
 class QueueValidator(BaseModel):
@@ -18,41 +22,41 @@ class QueueValidator(BaseModel):
 
 @dataclass
 class AsyncRQWorker:
+    """Асинхронный воркер для обработки задач из Redis-очереди.
+
+    Используется в микросервисной архитектуре для асинхронного извлечения,
+    обработки и повторной постановки задач в очередь. Поддерживает логирование,
+    идентификацию задач и интеграцию с бизнес-логикой через коллбэк-функции.
+
+    Атрибуты:
+        redis_client (Redis): Асинхронный клиент Redis.
+        queue_names (list[str]): Имена очередей, которые будут обрабатываться.
+        task_id (str | None): Идентификатор текущей задачи.
+        function (Callable[[dict], Awaitable[None]] | None): Обрабатывающая функция.
+        logger (logging.Logger | None): Пользовательский или дефолтный логгер.
+
+    Методы:
+        init_queues():
+            Валидирует и инициализирует имена очередей с суффиксом ":processing".
+
+        init_logger():
+            Возвращает переданный логгер или создаёт новый логгер по умолчанию.
+
+        get_task_from_queue():
+            Блокирующее получение задачи из одной из очередей.
+
+        set_task_in_queue(data, queue_name=None, task_id=None):
+            Сериализует и помещает задачу в очередь (по умолчанию — первая в списке).
+
+        run():
+            Основной цикл обработки: получает задачи, десериализует и передаёт в функцию.
+            Обрабатывает ошибки, включая отмену и ошибки сериализации/логики.
+
+    Исключения:
+        - ValueError: При ошибке валидации очередей или JSON-декодировании.
+        - RuntimeError: Если не передана функция обработки задач.
     """
-        Асинхронный воркер для обработки задач из Redis-очереди.
 
-        Используется в микросервисной архитектуре для асинхронного извлечения,
-        обработки и повторной постановки задач в очередь. Поддерживает логирование,
-        идентификацию задач и интеграцию с бизнес-логикой через коллбэк-функции.
-
-        Атрибуты:
-            redis_client (Redis): Асинхронный клиент Redis.
-            queue_names (list[str]): Имена очередей, которые будут обрабатываться.
-            task_id (str | None): Идентификатор текущей задачи.
-            function (Callable[[dict], Awaitable[None]] | None): Обрабатывающая функция.
-            logger (logging.Logger | None): Пользовательский или дефолтный логгер.
-
-        Методы:
-            init_queues():
-                Валидирует и инициализирует имена очередей с суффиксом ":processing".
-
-            init_logger():
-                Возвращает переданный логгер или создаёт новый логгер по умолчанию.
-
-            get_task_from_queue():
-                Блокирующее получение задачи из одной из очередей.
-
-            set_task_in_queue(data, queue_name=None, task_id=None):
-                Сериализует и помещает задачу в очередь (по умолчанию — первая в списке).
-
-            run():
-                Основной цикл обработки: получает задачи, десериализует и передаёт в функцию.
-                Обрабатывает ошибки, включая отмену и ошибки сериализации/логики.
-
-        Исключения:
-            - ValueError: При ошибке валидации очередей или JSON-декодировании.
-            - RuntimeError: Если не передана функция обработки задач.
-    """
     redis_client: Redis
     queue_names: list[str]
     task_id: str = None
@@ -93,7 +97,7 @@ class AsyncRQWorker:
             WorkerMessage.TASK_RECEIVED.value.format(
                 function=self.function_name,
                 data=task,
-            )
+            ),
         )
         return task
 
@@ -116,7 +120,7 @@ class AsyncRQWorker:
                 queue=queue,
                 task_id=self.task_id,
                 data=data,
-            )
+            ),
         )
         task_template = dict(task_id=data)
         task_template[self.task_id] = task_template.pop('task_id')
@@ -142,7 +146,7 @@ class AsyncRQWorker:
                     except JSONDecodeError as e:
                         raise ValueError(
                             WorkerMessage.JSON_DECODE_ERROR.value.format(
-                                error=str(e)[:FieldLength.ERROR.value]
+                                error=str(e)[:FieldLength.ERROR.value],
                             ),
                         )
                     else:
@@ -150,7 +154,7 @@ class AsyncRQWorker:
                             WorkerMessage.DATA_RECEIVED.value.format(
                                 data=data,
                                 function=self.function_name,
-                            )
+                            ),
                         )
                         task_id = list(data.keys())[0]
                         cleaned_data = list(data.values())[0]
@@ -163,6 +167,6 @@ class AsyncRQWorker:
                     WorkerMessage.PROCESSING_ERROR.value.format(
                         function=self.function_name,
                         error=str(e)[:FieldLength.ERROR.value],
-                    )
+                    ),
                 )
                 await asyncio.sleep(1)

@@ -8,7 +8,7 @@ from tenacity import (
     stop_after_attempt,
 )
 
-from core.exceptions import UrlFlagError, PageError
+from core.exceptions import PageError, UrlFlagError
 from core.logger_settings import logger
 from services.parser.base import InitParser
 from services.parser.sites.ConverseBank.parser import (

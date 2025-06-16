@@ -4,7 +4,7 @@ import random
 from dataclasses import dataclass
 
 import aiofiles
-from playwright.async_api import BrowserContext, Page, Error, TimeoutError
+from playwright.async_api import BrowserContext, Error, Page, TimeoutError
 
 import services.parser.config as conf
 from core.exceptions import ParserError
@@ -78,6 +78,9 @@ class InitParser:
         )
 
     async def block_resources(self, route, request):
+        """
+
+        """
         if request.resource_type in self.block_resource:
             await route.abort()
         else:
@@ -90,8 +93,8 @@ class InitParser:
         try:
             self.proxy = {
                 'server': 'http://23.94.138.75:6349',
-                'username': 'jqsjwunw',
-                'password': 'hd9wm3292a73',
+                'username': settings.webshare_login,
+                'password': settings.webshare_password,
             }
             user_agent = await self.get_random_user_agent()
             self.context = await browser.new_context(

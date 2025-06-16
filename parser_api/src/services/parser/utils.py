@@ -16,5 +16,7 @@ async def check_ip():
         print(f'IP: {ip}')
         await browser.close()
 
+
 import asyncio
+
 asyncio.run(check_ip())

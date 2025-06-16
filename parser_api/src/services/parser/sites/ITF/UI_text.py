@@ -1,7 +1,5 @@
 from enum import Enum
 
-from schemas.message import ResultOutPutMessageData
-
 
 class ITFDataWaterNameSelector(str, Enum):
     ADDRESS = 'Հասցե'

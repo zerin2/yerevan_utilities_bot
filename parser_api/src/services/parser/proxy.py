@@ -1,36 +1,131 @@
 import asyncio
+import json
 import random
+from pprint import pprint
 
 import aiohttp
+from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
-from core.settings import settings
-
-WEBSHARE_TOKEN = settings.webshare_token
-WEBSHARE_URL_LIST = 'https://proxy.webshare.io/api/v2/proxy/list/'
-WEBSHARE_PARAMS_URL_LIST = {'mode': 'direct'}
-WEBSHARE_HEADERS = {'Authorization': 'Token ' + WEBSHARE_TOKEN}
-
-async def get_proxy_list() -> list:
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-                url=WEBSHARE_URL_LIST,
-                headers=WEBSHARE_HEADERS,
-                params=WEBSHARE_PARAMS_URL_LIST
-        ) as response:
-            data = await response.json()
-            return data['results']
+from core.cache_settings import redis_client
+from core.exceptions import (
+    ApiError,
+    ApiProxyListError,
+    ApiResponseDataError,
+    ApiResponseStatusError,
+    JsonError,
+    ProxyList404,
+)
+from core.logger_settings import logger
+from services.enums import TTL, ProxyMessage, StatusType, WebshareProxy
 
 
+async def get_proxy_list(
+        url: str,
+        headers: dict,
+        params: dict,
+        required_key: str,
+) -> list:
+    """Асинхронно запрашивает список прокси (или другие данные) с API.
+    Выполняет GET-запрос по переданному URL с указанными headers и params.
+    Проверяет статус ответа, парсит ответ как JSON, валидирует, что это словарь.
+    Возвращает значение по ключу required_key из ответа.
+    """
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                    url=url,
+                    headers=headers,
+                    params=params,
+            ) as response:
+                if response.status != 200:
+                    error_message = ProxyMessage.API_RESPONSE_ERROR.value.format(
+                        response_status=response.status,
+                        text=await response.text(),
+                    )
+                    logger.error(error_message)
+                    raise ApiResponseStatusError(error_message)
+                data = await response.json()
+                if not isinstance(data, dict):
+                    error_message = ProxyMessage.BAD_RESPONSE.value.format(
+                        data=data)
+                    logger.error(error_message)
+                    raise ApiResponseDataError(error_message)
+                return data.get(required_key)
+    except Exception as e:
+        error_message = ProxyMessage.API_ERROR.value.format(e=e)
+        logger.error(error_message)
+        raise ApiError(error_message)
 
-# 'http': 'http://user123:pass456@1.2.3.4:8080',
-# http://username:password@proxy_address:port
 
-# 'username': 'jqsjwunw',
-# 'password': 'hd9wm3292a73',
-# 'proxy_address':
-# '198.23.239.134',
-# 'port': 6540
+@retry(
+    retry=retry_if_exception_type(ApiResponseStatusError),
+    stop=stop_after_attempt(3),
+    sleep=1,
+)
+async def get_proxy_list_with_retry() -> list:
+    return await get_proxy_list(
+        url=WebshareProxy.URL_LIST.value,
+        headers=WebshareProxy.HEADERS.value,
+        params=WebshareProxy.PARAMS_URL_LIST.value,
+        required_key=WebshareProxy.RESULT_KEY.value,
+    )
 
-# f'http://{username}:{password}@{proxy_address}:{port}'
 
-asyncio.run(get_proxy_list())
+async def add_proxy_list_in_cash(
+        proxy_list: list[dict],
+        proxy_list_name: str,
+) -> None:
+    """Добавляет список прокси в кэш Redis с TTL.
+    Всем элементам проставляет статус OK и обнуляет failures.
+    """
+    for proxy in proxy_list:
+        proxy['status'] = StatusType.OK.value
+        proxy['failures'] = 0
+    try:
+        await redis_client.set(
+            proxy_list_name,
+            json.dumps(proxy_list),
+            ex=TTL.PROXY_LIST.value,
+        )
+    except Exception as e:
+        logger.error(ProxyMessage.PROXY_LIST_ADD_ERROR.value.format(
+            error=str(e),
+        ))
+    else:
+        logger.info(ProxyMessage.PROXY_LIST_OK.value.format(
+            proxy_list=proxy_list[:2],
+        ))
+
+
+async def get_random_proxy_from_cash(key: str) -> dict:
+    """Возвращает случайный валидный прокси из кэша Redis по заданному ключу.
+    Фильтрует по статусу OK и valid=True.
+    """
+    raw_data = await redis_client.get(key)
+    if not raw_data:
+        raise ProxyList404(ProxyMessage.LIST_NOT_FOUND.value)
+    list_data = json.loads(raw_data)
+    if not list_data:
+        raise JsonError(ProxyMessage.EMPTY_KEY.value)
+    valid_proxies = [
+        proxy for proxy in list_data
+        if proxy.get('status') == StatusType.OK.value and proxy.get('valid') is True
+    ]
+    if not valid_proxies:
+        raise ApiProxyListError(
+            ProxyMessage.PROXY_LIST_VALID_ERROR.value.format(
+                proxy_list=list_data[:50],
+            ),
+        )
+    return random.choice(valid_proxies)
+
+
+async def main():
+    proxy_list = await get_proxy_list_with_retry()
+    await add_proxy_list_in_cash(proxy_list, WebshareProxy.LIST_NAME.value)
+
+    # TODO если нет списка, создаем
+    return await get_random_proxy_from_cash(WebshareProxy.LIST_NAME.value)
+
+
+pprint(asyncio.run(main()))
