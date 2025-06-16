@@ -9,7 +9,6 @@ from playwright.async_api import BrowserContext, Error, Page, TimeoutError
 import services.parser.config as conf
 from core.exceptions import ParserError
 from core.logger_settings import logger
-from core.settings import settings
 
 
 @dataclass
@@ -91,19 +90,11 @@ class InitParser:
 
         """
         try:
-            self.proxy = {
-                'server': 'http://23.94.138.75:6349',
-                'username': settings.webshare_login,
-                'password': settings.webshare_password,
-            }
             user_agent = await self.get_random_user_agent()
             self.context = await browser.new_context(
                 user_agent=user_agent,
                 viewport=self.viewport,
                 proxy=self.proxy,
-                # proxy=None,
-                # locale='',
-                # timezone_id='',
             )
             await self.context.route('**/*', self.block_resources)
             await self.context.add_init_script(self.random_init_script())
@@ -116,7 +107,5 @@ class InitParser:
                 f'Запущен парсер с параметрами: '
                 f'user_agent={user_agent}, '
                 f'viewport={self.viewport}, '
-                f'proxy={self.proxy['server']}',
-                # f'locale={}',
-                # f'timezoneId={}',
+                f'proxy={self.proxy.get('server') if self.proxy else None}',
             )

@@ -6,8 +6,8 @@ async def check_ip():
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(proxy={
                     'server': 'http://207.244.217.165:6712',
-                    'username': 'jqsjwunw',
-                    'password': 'hd9wm3292a73',
+                    'username': '',
+                    'password': '',
                 },
         )
         page = await context.new_page()

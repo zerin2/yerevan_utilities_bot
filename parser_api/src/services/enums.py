@@ -3,11 +3,18 @@ from enum import Enum
 from core.settings import settings
 
 
+class ProxySettings(Enum):
+    PROXY_TEMPLATE = 'http://{proxy_address}:{port}'
+    PROXY_ATTEMPT = 5
+    RETRY_TIMEOUT_PROXY_LIST = 5
+
+
 class ProxyMessage(str, Enum):
+    API_RATE_LIMITED = 'Превышено количество запросов на API'
     API_RESPONSE_ERROR = 'Ошибка API: статус ({response_status}), тело: ({text})'
     API_ERROR = 'Ошибка при работе с API: ({e})'
     BAD_RESPONSE = 'Некорректная структура ответа: ({data})'
-    PROXY_LIST_OK = 'Добавлен новый прокси лист в кэш: {proxy_list}'
+    PROXY_LIST_OK = 'Добавлен новый прокси лист в кэш'
     PROXY_LIST_VALID_ERROR = 'Нет валидных прокси в списке: {proxy_list}'
     PROXY_LIST_ADD_ERROR = 'Ошибка добавления списка прокси в кэш. Ошибка: ({error})'
     EMPTY_KEY = 'Пустой ключ'
@@ -41,8 +48,8 @@ class LoggerMessage(str, Enum):
 
 
 class TTL(int, Enum):
-    REDIS_KEY = 3600
-    PROXY_LIST = 60
+    REDIS_KEY = 60 * 60
+    PROXY_LIST = 60 * 15
 
 
 class AccountType(Enum):

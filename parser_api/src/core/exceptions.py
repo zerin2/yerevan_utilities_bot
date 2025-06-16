@@ -1,5 +1,3 @@
-
-
 class CustomBaseException(Exception):
     def __init__(self, message):
         self.message = message
@@ -105,6 +103,10 @@ class ApiError(CustomBaseException):
 
 
 class ApiResponseStatusError(CustomBaseException):
+    pass
+
+
+class ApiRateLimitedError(CustomBaseException):
     pass
 
 

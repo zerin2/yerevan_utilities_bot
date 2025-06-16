@@ -8,9 +8,20 @@ from tenacity import (
     stop_after_attempt,
 )
 
-from core.exceptions import PageError, UrlFlagError
+from core.exceptions import (
+    ApiProxyListError,
+    PageError,
+    ProxyList404,
+    UrlFlagError,
+)
 from core.logger_settings import logger
+from services.enums import ProxySettings, WebshareProxy
 from services.parser.base import InitParser
+from services.parser.proxy import (
+    add_proxy_list_in_cash,
+    get_proxy_list_with_retry,
+    get_random_proxy_from_cash,
+)
 from services.parser.sites.ConverseBank.parser import (
     CONVERSE_BANK_FLAG,
     ParserConverseBank,
@@ -50,42 +61,90 @@ class Parser(InitParser):
     async def run(self):
         """Основная логика работы парсера."""
         urls = self.get_map_urls(
-            [ITFUrl],
+            [
+                ITFUrl, # тут добавляем новый сайт для парсинга
+            ],
             'to_utility_url',
             self.utility,
         )
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=self.headless_config)
-            await self.init_header(browser)
-            self.page = await self.context.new_page()
-            for url in urls:
-                try:
-                    await self.retry_goto(url)
-                    logger.info(f'Успешный переход по: {url}')
-                    break
-                except RetryError as e:
-                    error_message = (
-                        f'(Proxy: {self.proxy['server']}) '
-                        f'Не удалось перейти по {url} '
-                        f'после 3 попыток: {str(e)}',
-                    )
-                    logger.warning(error_message)
-                    raise PageError(error_message)
+        for attempt in range(ProxySettings.PROXY_ATTEMPT.value):
             try:
-                cookies = await self.context.cookies()
-                await self.context.add_cookies(cookies)
-            except self.playwright_errors as e:
-                logger.error(f'Ошибка получения cookies: {str(e)}')
+                raw_proxy = await get_random_proxy_from_cash(
+                    WebshareProxy.LIST_NAME.value,
+                )
+                proxy_address = raw_proxy.get('proxy_address')
+                proxy_port = raw_proxy.get('port')
+                proxy_server = ProxySettings.PROXY_TEMPLATE.value.format(
+                        proxy_address=proxy_address,
+                        port=proxy_port,
+                    )
+                logger.info(
+                    f'Попытка №{attempt + 1} '
+                    f'с прокси: {proxy_server}',
+                )
+            except ProxyList404 as e:
+                logger.info(e.__class__.__name__)
+                self.proxy = None
 
-            parser = self.get_parser(self.detect_url_flag(url), self.message_data)
-            parser.context = self.context
-            parser.page = self.page
-            data = await parser.get_data()
-            await self.context.clear_cookies()
-            await browser.close()
-            logger.info('Парсер завершил работу.')
-        return data
+                ####### тут правильно обработать если уже запрашиваем прокси
+                proxy_list = await get_proxy_list_with_retry()
+                if proxy_list:
+                    await add_proxy_list_in_cash(
+                        proxy_list,
+                        WebshareProxy.LIST_NAME.value,
+                    )
+                #####
+            except ApiProxyListError as e:
+                logger.info(e.__class__.__name__)
+                self.proxy = None
+            else:
+                self.proxy = {
+                    'server': proxy_server,
+                    'username': raw_proxy.get('username'),
+                    'password': raw_proxy.get('password'),
+                }
 
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=self.headless_config)
+                try:
+                    await self.init_header(browser)
+                    self.page = await self.context.new_page()
+
+                    for url in urls:
+                        try:
+                            await self.retry_goto(url)
+                            logger.info(f'Успешный переход по: {url}')
+                            break
+                        except RetryError as e:
+                            error_message = (
+                                f'(Proxy: {self.proxy['server']}) '
+                                f'Не удалось перейти по {url} '
+                                f'после 3 попыток: {str(e)}',
+                            )
+                            logger.warning(error_message)
+                            raise PageError(error_message)
+                    try:
+                        cookies = await self.context.cookies()
+                        await self.context.add_cookies(cookies)
+                    except self.playwright_errors as e:
+                        logger.error(f'Ошибка получения cookies: {str(e)}')
+
+                    parser = self.get_parser(self.detect_url_flag(url), self.message_data)
+                    parser.context = self.context
+                    parser.page = self.page
+                    data = await parser.get_data()
+                    await self.context.clear_cookies()
+                    await browser.close()
+                    logger.info('Парсер завершил работу.')
+                    return data
+                except PageError as e:
+                    logger.warning(f'Ошибка PageError: {str(e)}')
+                    await browser.close()
+                    # todo вот тут организовываем функцию с добавлением ошибки для прокси
+                    continue
+        raise PageError('Не удалось выполнить парсинг ни с одним из прокси')
+
+        # todo убрать в енам все фразы
 
 PARSER_CLASSES = {
     ITF_FLAG: ParserITF,

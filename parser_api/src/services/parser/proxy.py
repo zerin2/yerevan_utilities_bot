@@ -1,7 +1,5 @@
-import asyncio
 import json
 import random
-from pprint import pprint
 
 import aiohttp
 from tenacity import retry, retry_if_exception_type, stop_after_attempt
@@ -13,10 +11,10 @@ from core.exceptions import (
     ApiResponseDataError,
     ApiResponseStatusError,
     JsonError,
-    ProxyList404,
+    ProxyList404, ApiRateLimitedError,
 )
 from core.logger_settings import logger
-from services.enums import TTL, ProxyMessage, StatusType, WebshareProxy
+from services.enums import TTL, ProxyMessage, StatusType, WebshareProxy, ProxySettings
 
 
 async def get_proxy_list(
@@ -37,7 +35,11 @@ async def get_proxy_list(
                     headers=headers,
                     params=params,
             ) as response:
-                if response.status != 200:
+                if response.status == 429:
+                    error_message = ProxyMessage.API_RATE_LIMITED.value
+                    logger.error(error_message)
+                    raise ApiRateLimitedError(error_message)
+                elif response.status != 200:
                     error_message = ProxyMessage.API_RESPONSE_ERROR.value.format(
                         response_status=response.status,
                         text=await response.text(),
@@ -47,7 +49,8 @@ async def get_proxy_list(
                 data = await response.json()
                 if not isinstance(data, dict):
                     error_message = ProxyMessage.BAD_RESPONSE.value.format(
-                        data=data)
+                        data=data
+                    )
                     logger.error(error_message)
                     raise ApiResponseDataError(error_message)
                 return data.get(required_key)
@@ -58,9 +61,12 @@ async def get_proxy_list(
 
 
 @retry(
-    retry=retry_if_exception_type(ApiResponseStatusError),
+    retry=retry_if_exception_type((
+        ApiResponseStatusError,
+        ApiRateLimitedError,
+    )),
     stop=stop_after_attempt(3),
-    sleep=1,
+    sleep=ProxySettings.RETRY_TIMEOUT_PROXY_LIST.value,
 )
 async def get_proxy_list_with_retry() -> list:
     return await get_proxy_list(
@@ -78,6 +84,10 @@ async def add_proxy_list_in_cash(
     """Добавляет список прокси в кэш Redis с TTL.
     Всем элементам проставляет статус OK и обнуляет failures.
     """
+    # todo где то тут добавить значение для уже запрашиваемого листа прокси,
+    # todo чтобы не делать несколько запросов подряд() может флаг(processing)?
+    # todo добавить допустим словарь с ключом в "процессе", чтобы не ломать логику ниже
+
     for proxy in proxy_list:
         proxy['status'] = StatusType.OK.value
         proxy['failures'] = 0
@@ -92,9 +102,7 @@ async def add_proxy_list_in_cash(
             error=str(e),
         ))
     else:
-        logger.info(ProxyMessage.PROXY_LIST_OK.value.format(
-            proxy_list=proxy_list[:2],
-        ))
+        logger.info(ProxyMessage.PROXY_LIST_OK.value)
 
 
 async def get_random_proxy_from_cash(key: str) -> dict:
@@ -109,7 +117,9 @@ async def get_random_proxy_from_cash(key: str) -> dict:
         raise JsonError(ProxyMessage.EMPTY_KEY.value)
     valid_proxies = [
         proxy for proxy in list_data
-        if proxy.get('status') == StatusType.OK.value and proxy.get('valid') is True
+        if proxy.get('status') == StatusType.OK.value
+           and proxy.get('valid') is True
+           and proxy.get('failures') < 1
     ]
     if not valid_proxies:
         raise ApiProxyListError(
@@ -119,13 +129,11 @@ async def get_random_proxy_from_cash(key: str) -> dict:
         )
     return random.choice(valid_proxies)
 
-
-async def main():
-    proxy_list = await get_proxy_list_with_retry()
-    await add_proxy_list_in_cash(proxy_list, WebshareProxy.LIST_NAME.value)
-
-    # TODO если нет списка, создаем
-    return await get_random_proxy_from_cash(WebshareProxy.LIST_NAME.value)
-
-
-pprint(asyncio.run(main()))
+# async def main():
+#     proxy_list = await get_proxy_list_with_retry()
+#     await add_proxy_list_in_cash(proxy_list, WebshareProxy.LIST_NAME.value)
+#     print(proxy_list)
+#     return await get_random_proxy_from_cash(WebshareProxy.LIST_NAME.value)
+#
+#
+# pprint(asyncio.run(main()))
