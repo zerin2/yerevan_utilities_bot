@@ -9,6 +9,7 @@ from tenacity import (
 )
 
 from core.exceptions import (
+    ApiProcessingException,
     ApiProxyListError,
     PageError,
     ProxyList404,
@@ -19,8 +20,10 @@ from services.enums import ProxySettings, WebshareProxy
 from services.parser.base import InitParser
 from services.parser.proxy import (
     add_proxy_list_in_cash,
-    get_proxy_list_with_retry,
+    create_empty_proxy_list_in_cash,
+    get_api_proxy_list_with_retry,
     get_random_proxy_from_cash,
+    increase_proxy_failures,
 )
 from services.parser.sites.ConverseBank.parser import (
     CONVERSE_BANK_FLAG,
@@ -62,7 +65,7 @@ class Parser(InitParser):
         """Основная логика работы парсера."""
         urls = self.get_map_urls(
             [
-                ITFUrl, # тут добавляем новый сайт для парсинга
+                ITFUrl,  # тут добавляем новый сайт для парсинга
             ],
             'to_utility_url',
             self.utility,
@@ -74,10 +77,11 @@ class Parser(InitParser):
                 )
                 proxy_address = raw_proxy.get('proxy_address')
                 proxy_port = raw_proxy.get('port')
+                proxy_id = raw_proxy.get('id')
                 proxy_server = ProxySettings.PROXY_TEMPLATE.value.format(
-                        proxy_address=proxy_address,
-                        port=proxy_port,
-                    )
+                    proxy_address=proxy_address,
+                    port=proxy_port,
+                )
                 logger.info(
                     f'Попытка №{attempt + 1} '
                     f'с прокси: {proxy_server}',
@@ -85,16 +89,16 @@ class Parser(InitParser):
             except ProxyList404 as e:
                 logger.info(e.__class__.__name__)
                 self.proxy = None
-
-                ####### тут правильно обработать если уже запрашиваем прокси
-                proxy_list = await get_proxy_list_with_retry()
+                await create_empty_proxy_list_in_cash(
+                    WebshareProxy.LIST_NAME.value,
+                )
+                proxy_list = await get_api_proxy_list_with_retry()
                 if proxy_list:
                     await add_proxy_list_in_cash(
                         proxy_list,
                         WebshareProxy.LIST_NAME.value,
                     )
-                #####
-            except ApiProxyListError as e:
+            except (ApiProxyListError, ApiProcessingException) as e:
                 logger.info(e.__class__.__name__)
                 self.proxy = None
             else:
@@ -129,7 +133,10 @@ class Parser(InitParser):
                     except self.playwright_errors as e:
                         logger.error(f'Ошибка получения cookies: {str(e)}')
 
-                    parser = self.get_parser(self.detect_url_flag(url), self.message_data)
+                    parser = self.get_parser(
+                        self.detect_url_flag(url),
+                        self.message_data,
+                    )
                     parser.context = self.context
                     parser.page = self.page
                     data = await parser.get_data()
@@ -140,11 +147,14 @@ class Parser(InitParser):
                 except PageError as e:
                     logger.warning(f'Ошибка PageError: {str(e)}')
                     await browser.close()
-                    # todo вот тут организовываем функцию с добавлением ошибки для прокси
+                    await increase_proxy_failures(
+                        proxy_id=str(proxy_id),  # noqa
+                        proxy_list_name=WebshareProxy.LIST_NAME.value,
+                    )
+                    logger.info(f'Счётчик ошибок прокси {proxy_id} увеличен.')
                     continue
         raise PageError('Не удалось выполнить парсинг ни с одним из прокси')
 
-        # todo убрать в енам все фразы
 
 PARSER_CLASSES = {
     ITF_FLAG: ParserITF,

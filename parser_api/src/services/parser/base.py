@@ -9,6 +9,7 @@ from playwright.async_api import BrowserContext, Error, Page, TimeoutError
 import services.parser.config as conf
 from core.exceptions import ParserError
 from core.logger_settings import logger
+from core.settings import settings
 
 
 @dataclass
@@ -32,13 +33,10 @@ class InitParser:
         self.city = self.message_data.get('city')
         self.account_type = self.message_data.get('account_type')
         self.utility = self.message_data.get('utility')
-
         self.viewport = random.choice(conf.BROWSER_VIEWPORT)
         self.block_resource = conf.BLOCK_BROWSER_RESOURCES
-        # TODO: перед продом убрать
+        self.headless_config = True  # todo убрать в проде
         # self.headless_config = False if settings.debug else True
-        self.headless_config = True
-
         if self.message_data.get('first_check'):
             self.check_timeout = conf.FIRST_CHECK_TIMEOUT
 
@@ -77,8 +75,9 @@ class InitParser:
         )
 
     async def block_resources(self, route, request):
-        """
-
+        """Блокирует загрузку определённых типов ресурсов на странице.
+        Если тип ресурса (например, 'image', 'stylesheet', 'font') содержится
+        в self.block_resource, то запрос будет отменён (abort), иначе продолжен.
         """
         if request.resource_type in self.block_resource:
             await route.abort()
@@ -86,8 +85,13 @@ class InitParser:
             await route.continue_()
 
     async def init_header(self, browser):
-        """
-
+        """Инициализирует новый браузерный контекст со случайным user-agent
+        и параметрами прокси/размера экрана.
+        Создаёт контекст с кастомным user-agent, размером окна
+        и прокси (если указан).
+        Добавляет скрипт для инициализации
+        и роутинг для блокировки лишних ресурсов.
+        В случае ошибки логирует её и выбрасывает ParserError.
         """
         try:
             user_agent = await self.get_random_user_agent()

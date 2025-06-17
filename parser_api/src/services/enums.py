@@ -7,6 +7,7 @@ class ProxySettings(Enum):
     PROXY_TEMPLATE = 'http://{proxy_address}:{port}'
     PROXY_ATTEMPT = 5
     RETRY_TIMEOUT_PROXY_LIST = 5
+    GOOD_FAILURES = 3
 
 
 class ProxyMessage(str, Enum):
@@ -15,10 +16,12 @@ class ProxyMessage(str, Enum):
     API_ERROR = 'Ошибка при работе с API: ({e})'
     BAD_RESPONSE = 'Некорректная структура ответа: ({data})'
     PROXY_LIST_OK = 'Добавлен новый прокси лист в кэш'
+    PROXY_EMPTY_LIST_OK = 'Добавлен пустой прокси лист в кэш'
     PROXY_LIST_VALID_ERROR = 'Нет валидных прокси в списке: {proxy_list}'
     PROXY_LIST_ADD_ERROR = 'Ошибка добавления списка прокси в кэш. Ошибка: ({error})'
     EMPTY_KEY = 'Пустой ключ'
     LIST_NOT_FOUND = 'Список с прокси не найден'
+    PROCESSING_LIST = 'Список в процессе запроса'
 
 
 class WebshareProxy(Enum):

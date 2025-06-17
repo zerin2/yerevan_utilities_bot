@@ -90,6 +90,10 @@ class ProxyList404(CustomBaseException):
     pass
 
 
+class ApiProcessingException(CustomBaseException):
+    pass
+
+
 class DuplicateAccountError(CustomBaseException):
     def __init__(
             self,
