@@ -107,7 +107,6 @@ class Parser(InitParser):
                     'username': raw_proxy.get('username'),
                     'password': raw_proxy.get('password'),
                 }
-
             async with async_playwright() as p:
                 browser = await p.chromium.launch(headless=self.headless_config)
                 try:
