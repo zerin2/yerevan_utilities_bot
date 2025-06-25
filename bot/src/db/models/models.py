@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Optional
+
 from sqlalchemy import (
     DECIMAL,
     Column,
@@ -10,108 +13,84 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from bot.enums.setting_enums import FieldLength
 from db.models.base import BaseModel
+from db.models.mixin import NameMixin, DateTimeMixin
 
 
-class StatusType(BaseModel):
+class StatusType(BaseModel, NameMixin):
     """Тип статуса."""
 
-    name: Mapped[str] = mapped_column(
-        String(50),
-        unique=True,
-        nullable=False,
-        index=True,
-        doc='Название статуса. Должно быть уникальным.',
-    )
+    __tablename__ = 'status_type'
 
-    accounts_detail = relationship(
-        'AccountsDetail',
+    account_detail: Mapped['UserAccount'] = relationship(
         back_populates='status_type',
-        doc='Связь с таблицей AccountsDetails. '
-            'Определяет записи, использующие данный статус.',
+        doc='Определяет записи, использующие данный статус.',
     )
-    user = relationship(
-        'UsersProfile',
+    user: Mapped['UserProfile'] = relationship(
         back_populates='status_type',
-        doc='Связь с таблицей UsersProfile.',
+        doc='Связь с таблицей UserProfile.',
     )
 
 
-class NoticeType(BaseModel):
+class NoticeType(BaseModel, NameMixin):
     """Тип оповещения."""
 
-    name = Column(
-        String(50),
-        unique=True,
-        nullable=False,
-        index=True,
-        doc='Название оповещения. Должно быть уникальным.',
-    )
+    __tablename__ = 'notice_type'
 
     user = relationship(
-        'UsersProfile',
+        'UserProfile',
         back_populates='notice_type',
-        doc='Связь с таблицей UsersProfile.',
+        doc='Связь с таблицей UserProfile.',
     )
-    accounts_detail = relationship(
-        'AccountsDetail',
+    account_detail = relationship(
+        'AccountDetail',
         back_populates='notice_type',
-        doc='Связь с таблицей AccountsDetails.',
+        doc='Связь с таблицей AccountDetail.',
     )
 
 
-class StartNoticeInterval(BaseModel):
+class StartNoticeInterval(BaseModel, NameMixin):
     """Начальный интервал оповещения."""
 
-    name = Column(
-        String(50),
-        unique=True,
-        nullable=False,
-        index=True,
-        doc='Начальный интервал оповещения. Должно быть уникальным.',
-    )
+    __tablename__ = 'start_notice_interval'
 
     user = relationship(
-        'UsersProfile',
+        'UserProfile',
         back_populates='start_notice_interval',
-        doc='Связь с таблицей UsersProfile.',
+        doc='Связь с таблицей UserProfile.',
     )
 
 
-class EndNoticeInterval(BaseModel):
+class EndNoticeInterval(BaseModel, NameMixin):
     """Конечный интервал оповещения."""
 
-    name = Column(
-        String(50),
-        unique=True,
-        nullable=False,
-        index=True,
-        doc='Конечный интервал оповещения. Должно быть уникальным.',
-    )
+    __tablename__ = 'end_notice_interval'
 
     user = relationship(
-        'UsersProfile',
+        'UserProfile',
         back_populates='end_notice_interval',
-        doc='Связь с таблицей UsersProfile.',
+        doc='Связь с таблицей UserProfile.',
     )
 
 
-class UtilitiesType(BaseModel):
+class UtilityType(BaseModel, NameMixin):
     """Тип коммунальной услуги."""
 
-    name = Column(String(50), unique=True, nullable=False, index=True,
-                  doc='Название типа услуги. Должно быть уникальным.')
+    __tablename__ = 'utility_type'
 
-    accounts_detail = relationship(
-        'AccountsDetail',
-        back_populates='utilities_type',
-        doc='Связь с таблицей AccountsDetails. '
+    account_detail = relationship(
+        'AccountDetail',
+        back_populates='utility_type',
+        doc='Связь с таблицей AccountDetail. '
             'Определяет записи, использующие данный тип услуги.',
     )
 
 
-class UsersProfile(BaseModel):
+class UserProfile(BaseModel):
     """Пользователи."""
+
+    __tablename__ = 'user_profile'
 
     telegram_id = Column(String(50), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=func.now())
@@ -154,19 +133,19 @@ class UsersProfile(BaseModel):
     ovio = Column(String(50), nullable=True)
 
     history = relationship(
-        'UsersHistory',
+        'UserHistory',
         back_populates='user',
-        cascade='all, delete-orphan',
+        passive_deletes=True,
     )
-    accounts_detail = relationship(
-        'AccountsDetail',
+    account_detail = relationship(
+        'AccountDetail',
         back_populates='user',
-        cascade='all, delete-orphan',
+        passive_deletes=True,
     )
     feedback = relationship(
         'Feedback',
         back_populates='user',
-        cascade='all, delete-orphan',
+        passive_deletes=True,
     )
     status_type = relationship(
         'StatusType',
@@ -194,7 +173,7 @@ class UsersProfile(BaseModel):
     )
 
 
-class UsersHistory(BaseModel):
+class UserHistory(BaseModel):
     """История запросов юзеров."""
 
     user_id = Column(
@@ -208,83 +187,79 @@ class UsersHistory(BaseModel):
     state = Column(String, nullable=True)
     created_at = Column(DateTime, default=func.now())
 
-    user = relationship('UsersProfile', back_populates='history')
+    user = relationship('UserProfile', back_populates='history')
 
 
-class City(BaseModel):
+class City(BaseModel, NameMixin):
     """Названия городов."""
 
-    name = Column(
-        String(50),
-        unique=True,
-        nullable=False,
-        index=True,
-    )
-    accounts_detail = relationship(
-        'AccountsDetail',
+    __tablename__ = 'city'
+
+    account_detail = relationship(
+        'AccountDetail',
         back_populates='city',
-        doc='Связь с таблицей AccountsDetails.',
+        doc='Связь с таблицей AccountDetail.',
     )
 
 
-class AccountsDetail(BaseModel):
+class UserAccount(BaseModel, DateTimeMixin):
     """Информация о коммунальных счетах пользователя.
     Хранит информацию об оплате, задолженностях и текущем статусе.
     """
+    __tablename__ = 'user_account'
 
-    user_id = Column(
-        Integer,
-        ForeignKey('users_profile.id', ondelete='CASCADE'),
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey('user_profile.id', ondelete='CASCADE'),
         index=True,
         doc='ID пользователя, связанный с записью. '
             'Удаление пользователя удаляет связанные записи.',
     )
-    utility_type_id = Column(
-        Integer,
-        ForeignKey('utilities_type.id', ondelete='SET NULL'),
+    account: Mapped[str] = mapped_column(
+        String(FieldLength.ACCOUNT.value),
+        nullable=False,
+        index=True,
+        doc='Расчетный счет пользователя.'
+    )
+    account_info: Mapped[str] = mapped_column(
+        String,
+        nullable=True,
+        doc='Дополнительная информация о счете.',
+    )
+    utility_type_id: Mapped[int] = mapped_column(
+        ForeignKey('utility_type.id', ondelete='SET NULL'),
         nullable=True,
         index=True,
         doc='ID типа услуги. Если тип услуги удален, поле становится NULL.',
     )
-    last_overpayment = Column(
-        DECIMAL(15, 2),
-        nullable=True,
-        doc='(CREDIT) Последняя переплата пользователя. Значение в денежном формате.',
-    )
-    last_debt = Column(
-        DECIMAL(15, 2),
-        nullable=True,
-        doc='(DEBIT) Последний долг пользователя. Значение в денежном формате.',
-    )
-    city_id = Column(
-        Integer,
+    city_id: Mapped[int]  = mapped_column(
         ForeignKey('city.id', ondelete='SET NULL'),
         nullable=True,
-        index=True,
         doc='ID названия города.',
     )
-    address = Column(
-        String,
+    address: Mapped[str] = mapped_column(
+        String(FieldLength.ADDRESS.value),
         nullable=True,
         doc='Адрес.',
     )
-    traffic = Column(
-        String,
+    traffic: Mapped[str] = mapped_column(
+        String(FieldLength.TRAFFIC.value),
         nullable=True,
         doc='Показания счетчика.',
     )
-    last_updated = Column(
-        DateTime,
-        default=func.now(),
+    credit = Column(
+        DECIMAL(15, 2),
         nullable=True,
-        doc='Дата последнего обновления записи.',
+        doc='(CREDIT) Последняя переплата пользователя. '
+            'Значение в денежном формате.',
     )
-    notice_id = Column(
-        Integer,
-        ForeignKey('notice_type.id', ondelete='SET NULL'),
+    debit = Column(
+        DECIMAL(15, 2),
         nullable=True,
-        index=True,
+        doc='(DEBIT) Последний долг пользователя. '
+            'Значение в денежном формате.',
     )
+
+
     status = Column(
         Integer,
         ForeignKey('status_type.id', ondelete='SET NULL'),
@@ -292,37 +267,33 @@ class AccountsDetail(BaseModel):
         index=True,
         doc='ID статуса. Если статус удален, поле становится NULL.',
     )
-    info = Column(
-        String,
-        nullable=True,
-        doc='Дополнительная информация о записи.',
-    )
+
 
     user = relationship(
         'UsersProfile',
-        back_populates='accounts_detail',
+        back_populates='account_detail',
         doc='Связь с таблицей UsersProfile. '
             'Указывает на пользователя, которому принадлежит запись.',
     )
-    utilities_type = relationship(
-        'UtilitiesType',
-        back_populates='accounts_detail',
-        doc='Связь с таблицей UtilitiesType. Указывает тип услуги.',
+    utility_type = relationship(
+        'UtilityType',
+        back_populates='account_detail',
+        doc='Связь с таблицей UtilityType. Указывает тип услуги.',
     )
     notice_type = relationship(
         'NoticeType',
-        back_populates='accounts_detail',
+        back_populates='account_detail',
         doc='Связь с таблицей NoticeType. '
             'Указывает тип оповещения у пользователя.',
     )
     status_type = relationship(
         'StatusType',
-        back_populates='accounts_detail',
+        back_populates='account_detail',
         doc='Связь с таблицей StatusType. Указывает текущий статус записи.',
     )
     city = relationship(
         'City',
-        back_populates='accounts_detail',
+        back_populates='account_detail',
         doc='Связь с таблицей City. Указывает название города.',
     )
 
@@ -332,12 +303,12 @@ class Feedback(BaseModel):
 
     user_id = Column(
         Integer,
-        ForeignKey('users_profile.id', ondelete='CASCADE'),
+        ForeignKey('user_profile.id', ondelete='CASCADE'),
         index=True,
     )
-    type = Column(Text, nullable=False)
+    type: Mapped[str] = mapped_column(String, nullable=False)
     text = Column(Text, nullable=False)
     created_at = Column(DateTime, default=func.now())
     status = Column(String(20), default='new')
 
-    user = relationship('UsersProfile', back_populates='feedback')
+    user = relationship('UserProfile', back_populates='feedback')

@@ -81,6 +81,6 @@ PERSONAL_SETTINGS = {
     PersonalSettings.NOTICE_STATE.value: NoticeState.ON.value,
     PersonalSettings.NOTICE_TYPE.value: NoticeType.ANYTIME.value,
 }
-""" PERSONAL_SETTINGS (dict): Настройки по умолчанию для новых пользователей. """
+"""PERSONAL_SETTINGS (dict): Настройки по умолчанию для новых пользователей."""
 
 settings = Settings()

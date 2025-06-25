@@ -16,7 +16,11 @@ class AccountInput(BaseModel):
     def must_be_numeric_and_valid_length(cls, v: str) -> str:
         cleaned = re.sub(r'[-()+]', '', v)
         if not cleaned.isdigit():
-            raise ValueError('Ошибка: значение не является числом!')
+            raise ValueError(
+                'Ошибка: значение не является числом!'
+            )
         if len(cleaned) < 3:
-            raise ValueError('Ошибка: неполный номер лицевого счета или телефона!')
+            raise ValueError(
+                'Ошибка: неполный номер лицевого счета или телефона!'
+            )
         return cleaned

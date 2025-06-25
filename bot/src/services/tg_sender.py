@@ -50,8 +50,14 @@ class BotSender:
         self.message = str(self.message)
 
     async def send_message(self):
-        error_msg = '{error_cls} Ошибка отправки сообщения пользователю: {tg_id}, ошибка: {e}'
-        success_msg = 'Сообщение отправлено. UserID: {tg_id}, сообщение: {message}'
+        error_msg = (
+            '{error_cls} Ошибка отправки '
+            'сообщения пользователю: {tg_id}, ошибка: {e}'
+        )
+        success_msg = (
+            'Сообщение отправлено. '
+            'UserID: {tg_id}, сообщение: {message}'
+        )
         try:
             while True:
                 try:
@@ -63,11 +69,14 @@ class BotSender:
                     return
                 except LITE_ERRORS as e:
                     worker_logger.error(error_msg.format(
-                        error_cls=e.__class__.__name__, tg_id=self.tg_id, e=e,
+                        error_cls=e.__class__.__name__,
+                        tg_id=self.tg_id,
+                        e=e,
                     ))
                     await asyncio.sleep(
                         e.retry_after
-                        if isinstance(e, exc.TelegramRetryAfter) else LITE_RETRY_DELAY,
+                        if isinstance(e, exc.TelegramRetryAfter)
+                        else LITE_RETRY_DELAY,
                     )
                 except CRITICAL_ERRORS as e:
                     async with async_session() as session:
@@ -81,12 +90,13 @@ class BotSender:
                         )
                         await session.commit()
                     worker_logger.error(error_msg.format(
-                        error_cls=e.__class__.__name__, tg_id=self.tg_id, e=e,
+                        error_cls=e.__class__.__name__,
+                        tg_id=self.tg_id,
+                        e=e,
                     ))
                     break
         finally:
             await self.bot.session.close()
-
 
 # async def main():
 #     a = BotSender(tg_id=259564426, message='куку')

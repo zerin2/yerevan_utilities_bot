@@ -1,5 +1,11 @@
 from enum import Enum
 
+class FieldLength(int, Enum):
+    ACCOUNT = 70
+    ADDRESS = 150
+    TRAFFIC = 100
+
+
 
 class AccountStatus(Enum):
     NEW = 'new'

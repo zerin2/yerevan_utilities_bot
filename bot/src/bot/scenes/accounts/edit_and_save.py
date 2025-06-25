@@ -111,33 +111,57 @@ class SaveAccountScene(Scene):
         await callback.message.delete()
 
 
-class EditElectricityAccountScene(EditAccountScene, state=SceneName.ELECTRICITY.editor):
+class EditElectricityAccountScene(
+    EditAccountScene,
+    state=SceneName.ELECTRICITY.editor
+):
     """Добавления счёта(электричество)."""
 
 
-class SaveElectricityAccountScene(SaveAccountScene, state=SceneName.ELECTRICITY.save):
+class SaveElectricityAccountScene(
+    SaveAccountScene,
+    state=SceneName.ELECTRICITY.save
+):
     """Сохранение счета(электричество)."""
 
 
-class EditGasAccountScene(EditAccountScene, state=SceneName.GAS.editor):
+class EditGasAccountScene(
+    EditAccountScene,
+    state=SceneName.GAS.editor
+):
     """Добавления счёта(газ)."""
 
 
-class SaveGasAccountScene(SaveAccountScene, state=SceneName.GAS.save):
+class SaveGasAccountScene(
+    SaveAccountScene,
+    state=SceneName.GAS.save
+):
     """Сохранение счета(газ)."""
 
 
-class EditGasServiceAccountScene(EditAccountScene, state=SceneName.GAS_SERVICE.editor):
+class EditGasServiceAccountScene(
+    EditAccountScene,
+    state=SceneName.GAS_SERVICE.editor
+):
     """Сцена управления счётом обслуживания газа."""
 
 
-class SaveGasServiceAccountScene(SaveAccountScene, state=SceneName.GAS_SERVICE.save):
+class SaveGasServiceAccountScene(
+    SaveAccountScene,
+    state=SceneName.GAS_SERVICE.save
+):
     """Сохранение счета(обслуживания газа)."""
 
 
-class EditWaterAccountScene(EditAccountScene, state=SceneName.WATER.editor):
+class EditWaterAccountScene(
+    EditAccountScene,
+    state=SceneName.WATER.editor
+):
     """Добавления счёта(обслуживания воды)."""
 
 
-class SaveWaterAccountScene(SaveAccountScene, state=SceneName.WATER.save):
+class SaveWaterAccountScene(
+    SaveAccountScene,
+    state=SceneName.WATER.save
+):
     """Сохранение счета(обслуживания воды)."""
