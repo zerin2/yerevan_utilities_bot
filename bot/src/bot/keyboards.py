@@ -7,7 +7,7 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
 )
-from enums.scene_enums import SceneName, Utility
+from enums.scene_enums import SceneName, UtilityNameIcon
 from enums.setting_enums import NoticeInterval, NoticeState, NoticeType
 
 from bot.crud.composite_manager import CompositeManager
@@ -20,10 +20,10 @@ CALLBACK_DATA_ACCOUNT_KEYBOARD = [
 
 ]
 EDITOR_ACCOUNT_BUTTONS = [
-    (Utility.ELECTRICITY.value, SceneName.ELECTRICITY.editor),
-    (Utility.GAS.value, SceneName.GAS.editor),
-    (Utility.GAS_SERVICE.value, SceneName.GAS_SERVICE.editor),
-    (Utility.WATER.value, SceneName.WATER.editor),
+    (UtilityNameIcon.ELECTRICITY.value, SceneName.ELECTRICITY.editor),
+    (UtilityNameIcon.GAS.value, SceneName.GAS.editor),
+    (UtilityNameIcon.GAS_SERVICE.value, SceneName.GAS_SERVICE.editor),
+    (UtilityNameIcon.WATER.value, SceneName.WATER.editor),
     # (Utility.VIVA_MTS.value, SceneName.VIVA_MTS.editor),
     # (Utility.TEAM_TELECOM.value, SceneName.TEAM_TELECOM.editor),
     # (Utility.U_COM.value, SceneName.U_COM.editor),

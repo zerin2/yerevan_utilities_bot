@@ -2,12 +2,12 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
-from bot.enums.scene_enums import UtilityModelName
+from bot.enums.scene_enums import UtilityName
 from bot.enums.setting_enums import (
-    AccountStatus,
     NoticeState,
     NoticeType,
-    PersonalSettings,
+    UserAccountStatus,
+    UserPersonalSettings,
     UtilityType,
 )
 
@@ -66,20 +66,20 @@ class Settings(BaseSettings):
 
 
 ACCOUNT_TYPE = {
-    UtilityModelName.ELECTRICITY: UtilityType.CODE.value,
-    UtilityModelName.GAS: UtilityType.CODE.value,
-    UtilityModelName.GAS_SERVICE: UtilityType.CODE.value,
-    UtilityModelName.WATER: UtilityType.CODE.value,
-    UtilityModelName.VIVA_MTS: UtilityType.PHONE.value,
-    UtilityModelName.TEAM_TELECOM: UtilityType.PHONE.value,
-    UtilityModelName.U_COM: UtilityType.PHONE.value,
-    UtilityModelName.OVIO: UtilityType.PHONE.value,
+    UtilityName.ELECTRICITY: UtilityType.CODE.value,
+    UtilityName.GAS: UtilityType.CODE.value,
+    UtilityName.GAS_SERVICE: UtilityType.CODE.value,
+    UtilityName.WATER: UtilityType.CODE.value,
+    UtilityName.VIVA_MTS: UtilityType.PHONE.value,
+    UtilityName.TEAM_TELECOM: UtilityType.PHONE.value,
+    UtilityName.U_COM: UtilityType.PHONE.value,
+    UtilityName.OVIO: UtilityType.PHONE.value,
 }
 
 PERSONAL_SETTINGS = {
-    PersonalSettings.ACCOUNT_STATUS.value: AccountStatus.NEW.value,
-    PersonalSettings.NOTICE_STATE.value: NoticeState.ON.value,
-    PersonalSettings.NOTICE_TYPE.value: NoticeType.ANYTIME.value,
+    UserPersonalSettings.ACCOUNT_STATUS.value: UserAccountStatus.NEW.value,
+    UserPersonalSettings.NOTICE_STATE.value: NoticeState.ON.value,
+    UserPersonalSettings.NOTICE_TYPE.value: NoticeType.ANYTIME.value,
 }
 """PERSONAL_SETTINGS (dict): Настройки по умолчанию для новых пользователей."""
 

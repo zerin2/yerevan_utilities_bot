@@ -1,53 +1,6 @@
 from enum import Enum
 
-
-class FeedbackType(str, Enum):
-    REVIEW = 'review'
-    ERROR = 'error'
-
-
-class UtilityModelName(str, Enum):
-    ELECTRICITY = 'electricity'
-    GAS = 'gas'
-    GAS_SERVICE = 'gas_service'
-    WATER = 'water'
-    VIVA_MTS = 'viva_mts'
-    TEAM_TELECOM = 'team_telecom'
-    U_COM = 'u_com'
-    OVIO = 'ovio'
-
-
-class UtilityIcon(str, Enum):
-    LIGHTNING = '⚡'
-    FIRE = '🔥'
-    TOOLS = '🛠️'
-    DROP = '💧'
-    PHONE = '📱'
-    HANDSET = '📞'
-    INTERNET = '🌐'
-    TV = '📺'
-
-
-class UtilityRUS(str, Enum):
-    ELECTRICITY_RUS = ' Электричество '
-    GAS_RUS = ' Газ '
-    GAS_SERVICE_RUS = ' Газ (обслуживание) '
-    WATER_RUS = ' Вода '
-    VIVA_MTS_RUS = ' VIVA (MTS) '
-    TEAM_TELECOM_RUS = 'team (Telecom Armenia) '
-    U_COM_RUS = ' U! com '
-    OVIO_RUS = ' OVIO | Rostelecom '
-
-
-class Utility(Enum):
-    ELECTRICITY = UtilityRUS.ELECTRICITY_RUS.value + UtilityIcon.LIGHTNING.value
-    GAS = UtilityRUS.GAS_RUS.value + UtilityIcon.FIRE.value
-    GAS_SERVICE = UtilityRUS.GAS_SERVICE_RUS.value + UtilityIcon.TOOLS.value
-    WATER = UtilityRUS.WATER_RUS.value + UtilityIcon.DROP.value
-    VIVA_MTS = UtilityRUS.VIVA_MTS_RUS.value + UtilityIcon.PHONE.value
-    TEAM_TELECOM = UtilityRUS.TEAM_TELECOM_RUS.value + UtilityIcon.HANDSET.value
-    U_COM = UtilityRUS.U_COM_RUS.value + UtilityIcon.INTERNET.value
-    OVIO = UtilityRUS.OVIO_RUS.value + UtilityIcon.TV.value
+from bot.enums.utility_enums import UtilityName, UtilityNameIcon
 
 
 class SceneName(Enum):
@@ -111,14 +64,14 @@ class SceneName(Enum):
 
         """
         mapping = {
-            SceneName.ELECTRICITY.editor: Utility.ELECTRICITY,
-            SceneName.GAS.editor: Utility.GAS,
-            SceneName.GAS_SERVICE.editor: Utility.GAS_SERVICE,
-            SceneName.WATER.editor: Utility.WATER,
-            SceneName.VIVA_MTS.editor: Utility.VIVA_MTS,
-            SceneName.TEAM_TELECOM.editor: Utility.TEAM_TELECOM,
-            SceneName.U_COM.editor: Utility.U_COM,
-            SceneName.OVIO.editor: Utility.OVIO,
+            SceneName.ELECTRICITY.editor: UtilityNameIcon.ELECTRICITY,
+            SceneName.GAS.editor: UtilityNameIcon.GAS,
+            SceneName.GAS_SERVICE.editor: UtilityNameIcon.GAS_SERVICE,
+            SceneName.WATER.editor: UtilityNameIcon.WATER,
+            SceneName.VIVA_MTS.editor: UtilityNameIcon.VIVA_MTS,
+            SceneName.TEAM_TELECOM.editor: UtilityNameIcon.TEAM_TELECOM,
+            SceneName.U_COM.editor: UtilityNameIcon.U_COM,
+            SceneName.OVIO.editor: UtilityNameIcon.OVIO,
         }
         return mapping.get(current_state)
 
@@ -141,13 +94,13 @@ class SceneName(Enum):
     def to_utility_name(current_state: str) -> str:
         """Сопоставление состояния с UtilityModelName."""
         mapping = {
-            SceneName.ELECTRICITY.editor: UtilityModelName.ELECTRICITY.value,
-            SceneName.GAS.editor: UtilityModelName.GAS.value,
-            SceneName.GAS_SERVICE.editor: UtilityModelName.GAS_SERVICE.value,
-            SceneName.WATER.editor: UtilityModelName.WATER.value,
-            SceneName.VIVA_MTS.editor: UtilityModelName.VIVA_MTS.value,
-            SceneName.TEAM_TELECOM.editor: UtilityModelName.TEAM_TELECOM.value,
-            SceneName.U_COM.editor: UtilityModelName.U_COM.value,
-            SceneName.OVIO.editor: UtilityModelName.OVIO.value,
+            SceneName.ELECTRICITY.editor: UtilityName.ELECTRICITY.value,
+            SceneName.GAS.editor: UtilityName.GAS.value,
+            SceneName.GAS_SERVICE.editor: UtilityName.GAS_SERVICE.value,
+            SceneName.WATER.editor: UtilityName.WATER.value,
+            SceneName.VIVA_MTS.editor: UtilityName.VIVA_MTS.value,
+            SceneName.TEAM_TELECOM.editor: UtilityName.TEAM_TELECOM.value,
+            SceneName.U_COM.editor: UtilityName.U_COM.value,
+            SceneName.OVIO.editor: UtilityName.OVIO.value,
         }
         return mapping.get(current_state)

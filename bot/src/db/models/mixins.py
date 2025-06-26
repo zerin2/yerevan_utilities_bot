@@ -1,13 +1,15 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import String, DateTime
+from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
+
+from bot.enums.setting_enums import FieldLength
 
 
 class NameMixin:
     name: Mapped[str] = mapped_column(
-        String(50),
+        String(FieldLength.NAME.value),
         unique=True,
         nullable=False,
         index=True,

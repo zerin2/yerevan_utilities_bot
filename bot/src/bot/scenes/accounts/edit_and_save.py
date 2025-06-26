@@ -11,7 +11,7 @@ import bot.keyboards as kb
 import settings as setting
 from bot.crud.composite_manager import CompositeManager
 from bot.enums.profile_enums import BotMessage
-from bot.enums.scene_enums import SceneName, UtilityModelName
+from bot.enums.scene_enums import SceneName, UtilityName
 from bot.scenes.accounts.schemas import AccountInput
 from db.core import async_session
 
@@ -79,10 +79,10 @@ class SaveAccountScene(Scene):
     @staticmethod
     def mapping_account(current_state):
         mapping = {
-            SceneName.ELECTRICITY.save: UtilityModelName.ELECTRICITY.value,
-            SceneName.GAS.save: UtilityModelName.GAS.value,
-            SceneName.GAS_SERVICE.save: UtilityModelName.GAS_SERVICE.value,
-            SceneName.WATER.save: UtilityModelName.WATER.value,
+            SceneName.ELECTRICITY.save: UtilityName.ELECTRICITY.value,
+            SceneName.GAS.save: UtilityName.GAS.value,
+            SceneName.GAS_SERVICE.save: UtilityName.GAS_SERVICE.value,
+            SceneName.WATER.save: UtilityName.WATER.value,
         }
         return mapping.get(current_state)
 
@@ -113,55 +113,55 @@ class SaveAccountScene(Scene):
 
 class EditElectricityAccountScene(
     EditAccountScene,
-    state=SceneName.ELECTRICITY.editor
+    state=SceneName.ELECTRICITY.editor,
 ):
     """Добавления счёта(электричество)."""
 
 
 class SaveElectricityAccountScene(
     SaveAccountScene,
-    state=SceneName.ELECTRICITY.save
+    state=SceneName.ELECTRICITY.save,
 ):
     """Сохранение счета(электричество)."""
 
 
 class EditGasAccountScene(
     EditAccountScene,
-    state=SceneName.GAS.editor
+    state=SceneName.GAS.editor,
 ):
     """Добавления счёта(газ)."""
 
 
 class SaveGasAccountScene(
     SaveAccountScene,
-    state=SceneName.GAS.save
+    state=SceneName.GAS.save,
 ):
     """Сохранение счета(газ)."""
 
 
 class EditGasServiceAccountScene(
     EditAccountScene,
-    state=SceneName.GAS_SERVICE.editor
+    state=SceneName.GAS_SERVICE.editor,
 ):
     """Сцена управления счётом обслуживания газа."""
 
 
 class SaveGasServiceAccountScene(
     SaveAccountScene,
-    state=SceneName.GAS_SERVICE.save
+    state=SceneName.GAS_SERVICE.save,
 ):
     """Сохранение счета(обслуживания газа)."""
 
 
 class EditWaterAccountScene(
     EditAccountScene,
-    state=SceneName.WATER.editor
+    state=SceneName.WATER.editor,
 ):
     """Добавления счёта(обслуживания воды)."""
 
 
 class SaveWaterAccountScene(
     SaveAccountScene,
-    state=SceneName.WATER.save
+    state=SceneName.WATER.save,
 ):
     """Сохранение счета(обслуживания воды)."""

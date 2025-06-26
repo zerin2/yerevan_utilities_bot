@@ -5,7 +5,7 @@ from loguru import logger
 
 from bot.crud.base import BaseBotManager
 from bot.crud.users import UserBotManager
-from bot.enums.scene_enums import UtilityModelName
+from bot.enums.scene_enums import UtilityName
 from db.models import AccountsDetail, StatusType, UsersProfile, UtilitiesType
 from exceptions import Account404
 
@@ -33,14 +33,14 @@ class AccountBotManager(BaseBotManager):
             logger.error(error)
             raise Account404(error)
         user_accounts = {
-            UtilityModelName.ELECTRICITY.value: user.electricity,
-            UtilityModelName.GAS.value: user.gas,
-            UtilityModelName.GAS_SERVICE.value: user.gas_service,
-            UtilityModelName.WATER.value: user.water,
-            UtilityModelName.VIVA_MTS.value: user.viva_mts,
-            UtilityModelName.TEAM_TELECOM.value: user.team_telecom,
-            UtilityModelName.U_COM.value: user.u_com,
-            UtilityModelName.OVIO.value: user.ovio,
+            UtilityName.ELECTRICITY.value: user.electricity,
+            UtilityName.GAS.value: user.gas,
+            UtilityName.GAS_SERVICE.value: user.gas_service,
+            UtilityName.WATER.value: user.water,
+            UtilityName.VIVA_MTS.value: user.viva_mts,
+            UtilityName.TEAM_TELECOM.value: user.team_telecom,
+            UtilityName.U_COM.value: user.u_com,
+            UtilityName.OVIO.value: user.ovio,
         }
         return user_accounts
 

@@ -1,21 +1,21 @@
-from datetime import datetime
-from typing import Optional
+from decimal import Decimal
+from typing import List, Optional
 
 from sqlalchemy import (
     DECIMAL,
+    Boolean,
     Column,
-    DateTime,
     ForeignKey,
     Integer,
     String,
     Text,
-    func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from bot.enums.feedback_enums import FeedbackStatus
 from bot.enums.setting_enums import FieldLength
 from db.models.base import BaseModel
-from db.models.mixin import NameMixin, DateTimeMixin
+from db.models.mixins import DateTimeMixin, NameMixin
 
 
 class StatusType(BaseModel, NameMixin):
@@ -23,13 +23,11 @@ class StatusType(BaseModel, NameMixin):
 
     __tablename__ = 'status_type'
 
-    account_detail: Mapped['UserAccount'] = relationship(
+    user_account: Mapped['UserAccount'] = relationship(
         back_populates='status_type',
-        doc='Определяет записи, использующие данный статус.',
     )
-    user: Mapped['UserProfile'] = relationship(
+    user_profile: Mapped['UserProfile'] = relationship(
         back_populates='status_type',
-        doc='Связь с таблицей UserProfile.',
     )
 
 
@@ -38,15 +36,11 @@ class NoticeType(BaseModel, NameMixin):
 
     __tablename__ = 'notice_type'
 
-    user = relationship(
-        'UserProfile',
+    user_profile: Mapped['UserProfile'] = relationship(
         back_populates='notice_type',
-        doc='Связь с таблицей UserProfile.',
     )
-    account_detail = relationship(
-        'AccountDetail',
+    user_account: Mapped['UserAccount'] = relationship(
         back_populates='notice_type',
-        doc='Связь с таблицей AccountDetail.',
     )
 
 
@@ -55,10 +49,8 @@ class StartNoticeInterval(BaseModel, NameMixin):
 
     __tablename__ = 'start_notice_interval'
 
-    user = relationship(
-        'UserProfile',
+    user_profile: Mapped['UserProfile'] = relationship(
         back_populates='start_notice_interval',
-        doc='Связь с таблицей UserProfile.',
     )
 
 
@@ -67,10 +59,18 @@ class EndNoticeInterval(BaseModel, NameMixin):
 
     __tablename__ = 'end_notice_interval'
 
-    user = relationship(
-        'UserProfile',
+    user_profile: Mapped['UserProfile'] = relationship(
         back_populates='end_notice_interval',
-        doc='Связь с таблицей UserProfile.',
+    )
+
+
+class City(BaseModel, NameMixin):
+    """Названия городов."""
+
+    __tablename__ = 'city'
+
+    user_account: Mapped['UserAccount'] = relationship(
+        back_populates='city',
     )
 
 
@@ -79,126 +79,79 @@ class UtilityType(BaseModel, NameMixin):
 
     __tablename__ = 'utility_type'
 
-    account_detail = relationship(
-        'AccountDetail',
+    user_account: Mapped['UserAccount'] = relationship(
         back_populates='utility_type',
-        doc='Связь с таблицей AccountDetail. '
-            'Определяет записи, использующие данный тип услуги.',
     )
 
 
-class UserProfile(BaseModel):
+class UserProfile(BaseModel, DateTimeMixin):
     """Пользователи."""
 
     __tablename__ = 'user_profile'
 
-    telegram_id = Column(String(50), unique=True, nullable=False, index=True)
-    created_at = Column(DateTime, default=func.now())
-    settings = Column(String(150), nullable=True)
-    is_delivery_blocked = Column(String(50), nullable=True)
-    status_id = Column(
+    telegram_id: Mapped[str] = mapped_column(
+        String(FieldLength.TELEGRAM_ID.value),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    settings: Mapped[Optional[str]] = mapped_column(
+        String(FieldLength.SETTINGS.value),
+        nullable=True,
+    )
+    is_delivery_blocked: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+    status_id: Mapped[Optional[int]] = Column(
         Integer,
         ForeignKey('status_type.id', ondelete='SET NULL'),
         nullable=True,
-        index=True,
     )
-    notice_state = Column(
-        String(30), nullable=True,
+    notice_state: Mapped[str] = mapped_column(
+        String(FieldLength.NOTICE_STATE.value),
+        nullable=False,
     )
-    notice_type_id = Column(
+    notice_type_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey('notice_type.id', ondelete='SET NULL'),
-        nullable=True,
-        index=True,
+        nullable=False,
     )
-    start_notice_interval_id = Column(
+    start_notice_interval_id: Mapped[Optional[int]] = mapped_column(
         Integer,
         ForeignKey('start_notice_interval.id', ondelete='SET NULL'),
         nullable=True,
-        index=True,
     )
-    end_notice_interval_id = Column(
+    end_notice_interval_id: Mapped[Optional[int]] = Column(
         Integer,
         ForeignKey('end_notice_interval.id', ondelete='SET NULL'),
         nullable=True,
-        index=True,
     )
-    electricity = Column(String(50), nullable=True)
-    gas = Column(String(50), nullable=True)
-    gas_service = Column(String(50), nullable=True)
-    water = Column(String(50), nullable=True)
-    viva_mts = Column(String(50), nullable=True)
-    team_telecom = Column(String(50), nullable=True)
-    u_com = Column(String(50), nullable=True)
-    ovio = Column(String(50), nullable=True)
 
-    history = relationship(
-        'UserHistory',
-        back_populates='user',
+    history: Mapped[List['UserHistory']] = relationship(
+        back_populates='user_profile',
         passive_deletes=True,
     )
-    account_detail = relationship(
-        'AccountDetail',
-        back_populates='user',
+    user_account: Mapped[List['UserAccount']] = relationship(
+        back_populates='user_profile',
         passive_deletes=True,
     )
-    feedback = relationship(
-        'Feedback',
-        back_populates='user',
+    feedback: Mapped[List['Feedback']] = relationship(
+        back_populates='user_profile',
         passive_deletes=True,
     )
-    status_type = relationship(
-        'StatusType',
-        back_populates='user',
-        doc='Связь с таблицей StatusType. '
-            'Указывает статус пользователя.',
+    status_type: Mapped['StatusType'] = relationship(
+        back_populates='user_profile',
     )
-    notice_type = relationship(
-        'NoticeType',
-        back_populates='user',
-        doc='Связь с таблицей NoticeType. '
-            'Указывает тип оповещения у пользователя.',
+    notice_type: Mapped['NoticeType'] = relationship(
+        back_populates='user_profile',
     )
-    start_notice_interval = relationship(
-        'StartNoticeInterval',
-        back_populates='user',
-        doc='Связь с таблицей NoticeType. '
-            'Указывает начальный интервал оповещения у пользователя.',
+    start_notice_interval: Mapped['StartNoticeInterval'] = relationship(
+        back_populates='user_profile',
     )
-    end_notice_interval = relationship(
-        'EndNoticeInterval',
-        back_populates='user',
-        doc='Связь с таблицей NoticeType. '
-            'Указывает конечный интервал оповещения у пользователя.',
-    )
-
-
-class UserHistory(BaseModel):
-    """История запросов юзеров."""
-
-    user_id = Column(
-        Integer,
-        ForeignKey('users_profile.id', ondelete='CASCADE'),
-        index=True,
-    )
-    chat_id = Column(Integer)
-    message_id = Column(Integer)
-    message_content = Column(Text, nullable=True)
-    state = Column(String, nullable=True)
-    created_at = Column(DateTime, default=func.now())
-
-    user = relationship('UserProfile', back_populates='history')
-
-
-class City(BaseModel, NameMixin):
-    """Названия городов."""
-
-    __tablename__ = 'city'
-
-    account_detail = relationship(
-        'AccountDetail',
-        back_populates='city',
-        doc='Связь с таблицей AccountDetail.',
+    end_notice_interval: Mapped['EndNoticeInterval'] = relationship(
+        back_populates='user_profile',
     )
 
 
@@ -206,109 +159,125 @@ class UserAccount(BaseModel, DateTimeMixin):
     """Информация о коммунальных счетах пользователя.
     Хранит информацию об оплате, задолженностях и текущем статусе.
     """
+
     __tablename__ = 'user_account'
 
     user_id: Mapped[int] = mapped_column(
         ForeignKey('user_profile.id', ondelete='CASCADE'),
         index=True,
-        doc='ID пользователя, связанный с записью. '
-            'Удаление пользователя удаляет связанные записи.',
     )
     account: Mapped[str] = mapped_column(
         String(FieldLength.ACCOUNT.value),
         nullable=False,
         index=True,
-        doc='Расчетный счет пользователя.'
+        doc='Расчетный счет пользователя.',
     )
-    account_info: Mapped[str] = mapped_column(
+    account_info: Mapped[Optional[str]] = mapped_column(
         String,
         nullable=True,
-        doc='Дополнительная информация о счете.',
     )
-    utility_type_id: Mapped[int] = mapped_column(
+    utility_type_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('utility_type.id', ondelete='SET NULL'),
         nullable=True,
         index=True,
-        doc='ID типа услуги. Если тип услуги удален, поле становится NULL.',
     )
-    city_id: Mapped[int]  = mapped_column(
+    city_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('city.id', ondelete='SET NULL'),
         nullable=True,
-        doc='ID названия города.',
     )
-    address: Mapped[str] = mapped_column(
+    address: Mapped[Optional[str]] = mapped_column(
         String(FieldLength.ADDRESS.value),
         nullable=True,
-        doc='Адрес.',
     )
-    traffic: Mapped[str] = mapped_column(
+    traffic: Mapped[Optional[str]] = mapped_column(
         String(FieldLength.TRAFFIC.value),
         nullable=True,
         doc='Показания счетчика.',
     )
-    credit = Column(
+    credit: Mapped[Optional[Decimal]] = mapped_column(
         DECIMAL(15, 2),
         nullable=True,
-        doc='(CREDIT) Последняя переплата пользователя. '
-            'Значение в денежном формате.',
+        doc='(CREDIT) Последняя переплата пользователя.',
     )
-    debit = Column(
+    debit: Mapped[Optional[Decimal]] = mapped_column(
         DECIMAL(15, 2),
         nullable=True,
-        doc='(DEBIT) Последний долг пользователя. '
-            'Значение в денежном формате.',
+        doc='(DEBIT) Последний долг пользователя.',
     )
-
-
-    status = Column(
+    status_id: Mapped[Optional[int]] = mapped_column(
         Integer,
         ForeignKey('status_type.id', ondelete='SET NULL'),
         nullable=True,
-        index=True,
-        doc='ID статуса. Если статус удален, поле становится NULL.',
+    )
+
+    user_profile: Mapped['UserProfile'] = relationship(
+        back_populates='user_account',
+    )
+    utility_type: Mapped['UtilityType'] = relationship(
+        back_populates='user_account',
+    )
+    notice_type: Mapped['NoticeType'] = relationship(
+        back_populates='user_account',
+    )
+    status_type: Mapped['StatusType'] = relationship(
+        back_populates='user_account',
+    )
+    city: Mapped['City'] = relationship(
+        back_populates='user_account',
     )
 
 
-    user = relationship(
-        'UsersProfile',
-        back_populates='account_detail',
-        doc='Связь с таблицей UsersProfile. '
-            'Указывает на пользователя, которому принадлежит запись.',
-    )
-    utility_type = relationship(
-        'UtilityType',
-        back_populates='account_detail',
-        doc='Связь с таблицей UtilityType. Указывает тип услуги.',
-    )
-    notice_type = relationship(
-        'NoticeType',
-        back_populates='account_detail',
-        doc='Связь с таблицей NoticeType. '
-            'Указывает тип оповещения у пользователя.',
-    )
-    status_type = relationship(
-        'StatusType',
-        back_populates='account_detail',
-        doc='Связь с таблицей StatusType. Указывает текущий статус записи.',
-    )
-    city = relationship(
-        'City',
-        back_populates='account_detail',
-        doc='Связь с таблицей City. Указывает название города.',
-    )
+class UserHistory(BaseModel, DateTimeMixin):
+    """История запросов юзеров."""
 
-
-class Feedback(BaseModel):
-    """Отзывы от пользователей, в том числе и ошибок."""
-
-    user_id = Column(
+    user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey('user_profile.id', ondelete='CASCADE'),
         index=True,
     )
-    type: Mapped[str] = mapped_column(String, nullable=False)
-    text = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=func.now())
-    status = Column(String(20), default='new')
+    chat_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    message_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    message_content: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    state: Mapped[Optional[str]] = Column(
+        String(FieldLength.STATE_MESSAGE.value),
+        nullable=True,
+    )
 
-    user = relationship('UserProfile', back_populates='feedback')
+    user_profile: Mapped['UserProfile'] = relationship(
+        back_populates='history',
+    )
+
+
+class Feedback(BaseModel, DateTimeMixin):
+    """Отзывы от пользователей, в том числе и ошибок."""
+
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('user_profile.id', ondelete='CASCADE'),
+        index=True,
+    )
+    feedback_type: Mapped[str] = mapped_column(
+        String(FieldLength.FEEDBACK_TYPE.value),
+        nullable=False,
+    )
+    text: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    status: Mapped[str] = mapped_column(
+        String,
+        default=FeedbackStatus.NEW.value,
+    )
+
+    user_profile: Mapped['UserProfile'] = relationship(
+        back_populates='feedback',
+                                                       )

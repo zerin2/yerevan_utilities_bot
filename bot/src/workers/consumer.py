@@ -3,13 +3,13 @@ from dataclasses import dataclass
 
 from enums.setting_enums import AccountStatus
 from send_to_parser import DataStatus
+from utils import to_decimal
 
 import workers.config as conf
 from bot.manager.composite_manager import CompositeManager
 from db.core import async_session
 from exceptions import JsonError, ParserError, StatusError, ValidationError
 from logs.config import worker_logger
-from utils import to_decimal
 from workers.redis_task import RedisTask
 from workers.tg_sender import BotSender
 from workers.validators import check_data_keys

@@ -17,10 +17,10 @@ class AccountInput(BaseModel):
         cleaned = re.sub(r'[-()+]', '', v)
         if not cleaned.isdigit():
             raise ValueError(
-                'Ошибка: значение не является числом!'
+                'Ошибка: значение не является числом!',
             )
         if len(cleaned) < 3:
             raise ValueError(
-                'Ошибка: неполный номер лицевого счета или телефона!'
+                'Ошибка: неполный номер лицевого счета или телефона!',
             )
         return cleaned
