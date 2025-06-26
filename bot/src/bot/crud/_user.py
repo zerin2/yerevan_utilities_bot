@@ -5,7 +5,7 @@ from enums.setting_enums import AccountStatus
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from bot.crud.base import BaseBotManager
+from bot.crud._base import BaseBotManager
 from db.models import (
     EndNoticeInterval,
     NoticeType,

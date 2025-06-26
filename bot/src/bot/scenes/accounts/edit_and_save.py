@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 import bot.keyboards as kb
 import settings as setting
-from bot.crud.composite_manager import CompositeManager
+from bot.crud._composite_manager import CompositeManager
 from bot.enums.profile_enums import BotMessage
 from bot.enums.scene_enums import SceneName, UtilityName
 from bot.scenes.accounts.schemas import AccountInput

@@ -1,189 +1,106 @@
-from typing import Type, TypeVar
+from typing import TypeVar, Any, Generic, Optional, Type
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import DeclarativeMeta
 
-import db.models as model
-from bot.handle_errors import handle_db_errors
+from db.core import Base
+
+ModelType = TypeVar('ModelType', bound=Base)
 
 
-class BaseRepository:
-    """Базовый репозиторий."""
+class CRUDBase(Generic[ModelType]):
+    """Базовый класс операций."""
 
-    USER_PROFILE_MODEL = model.UsersProfile
-    USER_HISTORY_MODEL = model.UsersHistory
-    STATUS_TYPE_MODEL = model.StatusType
-    START_NOTICE_INTERVAL_MODEL = model.StartNoticeInterval
-    END_NOTICE_INTERVAL_MODEL = model.EndNoticeInterval
-    NOTICE_TYPE_MODEL = model.NoticeType
-    UTILITIES_TYPE_MODEL = model.UtilitiesType
-    ACCOUNTS_DETAILS_MODEL = model.AccountsDetail
-    FEEDBACK_MODEL = model.Feedback
-
-    def __init__(self, session: AsyncSession):
+    def __init__(self, model: Type[ModelType], session: AsyncSession):
+        self.model = model
         self.session = session
 
+    def check_field_name(self, field_name: str) -> None:
+        """Проверяет существование поля в модели."""
+        if not hasattr(self.model, field_name):
+            raise ValueError(
+                f'Поле {field_name} не существует в модели {self.model.__name__}'
+            )
+        return None
 
-class BaseBotManager(BaseRepository):
-    """Базовый менеджер, с основными методами работы с бд.
-    Большинство ошибок обрабатывается в '@handle_db_errors'.
-    """
+    async def get_by_id(self, obj_id: int) -> Optional[ModelType]:
+        """Получение объекта по id."""
+        return await self.session.get(self.model, obj_id)
 
-    ModelType = TypeVar('ModelType', bound=DeclarativeMeta)
-
-    @staticmethod
-    def check_variable(*variables: str | int) -> None:
-        """Проверяет, что переменные не являются None, нулевым числом.
-        Выбрасывает ValueError, если условие нарушено.
-        """
-        for variable in variables:
-            if variable is None:
-                raise ValueError(
-                    'Передано значение None в одну из переменных.',
-                )
-            if isinstance(variable, int) and variable <= 0:
-                raise ValueError(
-                    f'Передано значение меньше или равное нулю: {variable}.',
-                )
-
-    @handle_db_errors
-    async def is_exist(
-            self,
-            model: Type[ModelType],
-            field_name: str,
-            variable: str | int,
-    ) -> bool:
-        """Проверяет, существует ли запись в бд для заданной модели,
-        имени поля и значения переменной.
-        Возвращает True, если запись существует, иначе False.
-        """
-        self.check_variable(variable)
-        field = getattr(model, field_name)
-        result = await self.session.execute(
-            select(model)
-            .where(field == variable),
-        )
-        variable_is_exist = result.scalars().first()
-        return variable_is_exist is not None
-
-    @handle_db_errors
-    async def is_exist_fields(
-            self,
-            model: Type[ModelType],
-            fields: dict,
-    ) -> bool:
-        """Проверяет, существуют ли записи в бд
-        для всех полей в переданном словаре.
-        """
-        for field_name, value in fields.items():
-            self.check_variable(value)
-            if not await self.is_exist(model, field_name, value):
-                return False
-        return True
-
-    @handle_db_errors
     async def get_by_field(
             self,
-            model: Type[ModelType],
             field_name: str,
-            variable: str | int,
-    ) -> ModelType | None:
-        """Получает запись из бд для заданной модели,
-        где значение указанного поля совпадает с переданным значением.
-        """
-        self.check_variable(variable)
-        field = getattr(model, field_name)
-        result = await self.session.execute(
-            select(model)
-            .where(field == variable),
+            value: Any,
+    ) -> Optional[ModelType]:
+        """Получение объекта по field_name и value."""
+        self.check_field_name(field_name)
+        field = getattr(self.model, field_name)
+        db_obj = await self.session.execute(
+            select(self.model).where(field == value)
         )
-        value = result.scalars().first()
-        return value
+        return db_obj.scalars().first()
 
-    @handle_db_errors
-    async def delete_instance(
+    async def get_multi(self) -> list[ModelType]:
+        """Получение списка всех объектов модели."""
+        db_objs = await self.session.execute(select(self.model))
+        return db_objs.scalars().all()
+
+    async def create(
             self,
-            model: Type[ModelType],
+            data: dict[str, Any],
+    ) -> ModelType:
+        """Создание объекта модели."""
+        for field_name in data.keys():
+            self.check_field_name(field_name)
+        db_obj = self.model(**data)
+        self.session.add(db_obj)
+        await self.session.flush()
+        return db_obj
+
+    async def update_by_id(
+            self,
+            obj_id: int,
+            data: dict[str, Any],
+    ) -> ModelType:
+        """Обновление объекта модели по id."""
+        for field_name in data.keys():
+            self.check_field_name(field_name)
+        db_obj = await self.get_by_id(obj_id)
+        if db_obj is None:
+            raise ValueError(f'Объект с id={obj_id} не найден.')
+        for field_name, value in data.items():
+            setattr(db_obj, field_name, value)
+        await self.session.flush()
+        return db_obj
+
+    async def update_by_field(
+            self,
             field_name: str,
-            variable: str | int,
-    ) -> None:
-        """Удаление записи из базы данных для указанной модели
-        по заданному полю и значению.
-        """
-        self.check_variable(variable)
-        field = getattr(model, field_name)
-        await self.session.execute(
-            delete(model)
-            .where(field == variable),
-        )
+            value: Any,
+            data: dict[str, Any],
+    ) -> ModelType:
+        """Обновление объекта модели по field_name и value."""
+        for name in data.keys():
+            self.check_field_name(name)
+        db_obj = await self.get_by_field(field_name, value)
+        if db_obj is None:
+            raise ValueError(
+                f'Объект с field_name={field_name}, '
+                f'value={value} не найден.'
+            )
+        for field_name, value in data.items():
+            setattr(db_obj, field_name, value)
+        await self.session.flush()
+        return db_obj
 
-    @handle_db_errors
-    async def add_new_instance(
-            self,
-            model: Type[ModelType],
-            fields: dict[str, str | int],
-    ) -> ModelType | None:
-        """Добавление новой записи в базу данных
-        для указанной модели с переданными полями.
-        """
-        for field_name, value in fields.items():
-            self.check_variable(value)
-        instance = model(**fields)
-        self.session.add(instance)
-        return instance
+    async def remove(self, db_obj: ModelType) -> None:
+        """Удаление объекта модели."""
+        await self.session.delete(db_obj)
+        await self.session.flush()
 
-    @handle_db_errors
-    async def edit_one_value(
-            self,
-            model: Type[ModelType],
-            field_name: str,
-            value: int | str,
-            update_field_name: str,
-            new_value: str | int,
-    ) -> ModelType | None:
-        """Обновляет указанное поле записи модели в базе данных.
-        Параметры:
-        ----------
-        model : Type[ModelType]
-            Модель SQLAlchemy для обновления.
-        field_name : str
-            Поле для поиска записи (например, 'id').
-        value : int | str
-            Значение для поиска записи.
-        update_field_name : str
-            Поле, которое нужно обновить.
-        new_value : str | int
-            Новое значение для указанного поля.
-        Возвращает:
-        ----------
-        ModelType | None
-        Обновленный экземпляр модели или None,
-        если запись не найдена или возникла ошибка.
-        """
-        instance = await self.get_by_field(model, field_name, value)
-        if instance is None:
-            return None
-        setattr(instance, update_field_name, new_value)
-        return instance
-
-    @handle_db_errors
-    async def edit_or_create_values(
-            self,
-            model: Type[ModelType],
-            field_name: str,
-            value: int | str,
-            new_values: dict[str, str | int],
-    ) -> ModelType | None:
-        """Редактирует существующую запись или создаёт новую,
-        если запись не найдена.
-        """
-        instance = await self.get_by_field(model, field_name, value)
-        if instance is None:
-            instance = model(**new_values)
-            self.session.add(instance)
+    async def remove_by_id(self, obj_id: int) -> None:
+        """Удаление объекта модели по id."""
+        db_obj = await self.get_by_id(obj_id)
+        if db_obj:
+            await self.session.delete(db_obj)
             await self.session.flush()
-            return instance
-        for key, val in new_values.items():
-            setattr(instance, key, val)
-        return instance

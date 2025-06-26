@@ -1,15 +1,15 @@
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.scene import SceneRegistry
-from enums.profile_enums import BotWords
 
-import bot.main.scenes.accounts.accounts_list as account_scene
-import bot.main.scenes.accounts.edit_and_save as edit_and_save_scene
-import bot.main.scenes.data_account as data_account_scene
-import bot.main.scenes.feedback as feedback_scene
-import bot.main.scenes.settings as setting_scene
-import bot.main.scenes.start_msg as start_scene
-from bot.main.keyboards import KeyboardText
+import bot.scenes.accounts.accounts_list as account_scene
+import bot.scenes.accounts.edit_and_save as edit_and_save_scene
+import bot.scenes.data_account as data_account_scene
+import bot.scenes.feedback as feedback_scene
+import bot.scenes.settings as setting_scene
+import bot.scenes.start_msg as start_scene
+from bot.enums.profile_enums import BotWords
+from bot.keyboards.enums import KeyboardText
 
 main_router = Router()
 main_router.message.register(

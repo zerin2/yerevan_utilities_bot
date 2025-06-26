@@ -55,7 +55,9 @@ class ValidateText:
                         f'(экранировано: "{user_input}") '
                         f'от пользователя {self.message.from_user.id}')
         if len(user_input) > 500:
-            await self.message.reply('Сообщение слишком длинное. '
-                                     'Пожалуйста, сократите его до 500 символов.')
+            await self.message.reply(
+                'Сообщение слишком длинное. '
+                'Пожалуйста, сократите его до 500 символов.'
+            )
             return None
         return user_input

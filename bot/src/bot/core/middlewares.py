@@ -6,7 +6,7 @@ from aiogram.exceptions import TelegramNetworkError, TelegramRetryAfter
 from aiogram.types import Update
 from typing_extensions import Awaitable
 
-from bot.crud.composite_manager import CompositeManager
+from bot.crud._composite_manager import CompositeManager
 from db.core import async_session
 from logs.config import bot_logger
 

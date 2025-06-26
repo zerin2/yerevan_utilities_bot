@@ -5,10 +5,10 @@ from aiogram import Bot, Dispatcher
 from aiogram.exceptions import TelegramConflictError, TelegramNetworkError
 from aiogram.fsm.storage.memory import MemoryStorage
 
-import bot.main.middlewares as mw
-from bot.main.errors import error_router
-from bot.main.scenes.help_info import help_info_router
-from bot.main.scenes.main import main_router
+import bot.middlewares as mw
+from bot.errors import error_router
+from bot.scenes.help_info import help_info_router
+from bot.scenes.main import main_router
 from logs.config import bot_logger
 from settings import settings
 

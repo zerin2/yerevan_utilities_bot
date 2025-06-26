@@ -5,7 +5,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
 )
 
-from bot.crud.composite_manager import CompositeManager
+from bot.crud._composite_manager import CompositeManager
 from bot.enums.scene_enums import SceneName
 from bot.enums.utility_enums import UtilityNameIcon
 from bot.keyboards.enums import KeyboardIcon, KeyboardText

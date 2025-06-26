@@ -1,10 +1,10 @@
-from bot.crud.account import (
+from bot.crud._account import (
     AccountBotManager,
     AccountsDetailsBotManager,
     UtilitiesTypeBotManager,
 )
-from bot.crud.feedback import FeedbackBotManger
-from bot.crud.users import UserBotManager
+from bot.crud._feedback import FeedbackBotManger
+from bot.crud._user import UserBotManager
 
 
 class CompositeManager(
