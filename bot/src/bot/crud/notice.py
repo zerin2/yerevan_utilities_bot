@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.crud.base import CRUDBase
-from db.models import NoticeType
+from db.models import EndNoticeInterval, NoticeType, StartNoticeInterval
 
 
 class CRUDNotice(CRUDBase):
@@ -32,4 +32,32 @@ class CRUDNotice(CRUDBase):
         return await self.create(session, {'name': notice_type})
 
 
+class CRUDBaseNoticeInterval(CRUDBase):
+    async def get_interval_by_name(
+            self,
+            session: AsyncSession,
+            notice_interval: str,
+    ) -> Optional[StartNoticeInterval]:
+        """Получаем тип оповещения по имени."""
+        return await self.get_by_field(session, 'name', notice_interval)
+
+    async def create_interval(
+            self,
+            session: AsyncSession,
+            notice_interval: str,
+    ) -> StartNoticeInterval:
+        """Создает тип оповещения."""
+        return await self.create(session, {'name': notice_interval})
+
+
+class CRUDStartNoticeInterval(CRUDBaseNoticeInterval):
+    """CRUD для начального интервала."""
+
+
+class CRUDEndNoticeInterval(CRUDBaseNoticeInterval):
+    """CRUD для конечного интервала."""
+
+
 notice_type_crud = CRUDNotice(NoticeType)
+start_notice_interval_crud = CRUDStartNoticeInterval(StartNoticeInterval)
+end_notice_interval_crud = CRUDEndNoticeInterval(EndNoticeInterval)

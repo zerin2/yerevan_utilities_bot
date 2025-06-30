@@ -12,14 +12,17 @@ class CustomBaseException(Exception):
 
 class StartNoticeInterval404(CustomBaseException):
     """Исключение: не найдено время начала интервала оповещений."""
+
     pass
 
 
 class EndNoticeInterval404(CustomBaseException):
     """Исключение: не найдено время окончания интервала оповещений."""
+
     pass
 
 
 class NoticeType404(CustomBaseException):
     """Исключение: не найден тип оповещения."""
+
     pass

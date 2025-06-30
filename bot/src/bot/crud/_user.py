@@ -1,8 +1,5 @@
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
 from bot.crud._base import BaseBotManager
-from logs.config import bot_logger
 
 
 class UserBotManager(BaseBotManager):
@@ -10,8 +7,6 @@ class UserBotManager(BaseBotManager):
     добавление, получение информации о пользователе и
     запись истории взаимодействия пользователя с ботом.
     """
-
-
 
     # async def get_user_by_tg_id(self, tg_id: str) -> UsersProfile | None:
     #     """Получение 'user' из бд по 'user_tg_id'."""
@@ -100,47 +95,47 @@ class UserBotManager(BaseBotManager):
     #     )
     #     return user_instance
 
-    async def get_start_notice_interval(
-            self,
-            tg_id: str,
-    ) -> StartNoticeInterval | None:
-        """Возвращает начальный интервал оповещения.
-        """
-        model = self.USER_PROFILE_MODEL
-        query = select(
-            model,
-        ).options(
-            selectinload(model.start_notice_interval),
-        ).where(model.telegram_id == str(tg_id))
-        result = await self.session.execute(query)
-        user: UsersProfile = result.scalar_one_or_none()
-        start_notice_interval = user.start_notice_interval
-        if not start_notice_interval:
-            msg = 'Не найден начальный интервал оповещения'
-            bot_logger.exception(msg)
-            raise UserBotManager.StartNoticeInterval404(msg)
-        return start_notice_interval
-
-    async def get_end_notice_interval(
-            self,
-            tg_id: str,
-    ) -> EndNoticeInterval | None:
-        """Возвращает конечный интервал оповещения.
-        """
-        model = self.USER_PROFILE_MODEL
-        query = select(
-            model,
-        ).options(
-            selectinload(model.end_notice_interval),
-        ).where(model.telegram_id == str(tg_id))
-        result = await self.session.execute(query)
-        user: UsersProfile = result.scalar_one_or_none()
-        end_notice_interval = user.end_notice_interval
-        if not end_notice_interval:
-            msg = 'Не найден конечный интервал оповещения'
-            bot_logger.exception(msg)
-            raise UserBotManager.EndNoticeInterval404(msg)
-        return end_notice_interval
+    # async def get_start_notice_interval(
+    #         self,
+    #         tg_id: str,
+    # ) -> StartNoticeInterval | None:
+    #     """Возвращает начальный интервал оповещения.
+    #     """
+    #     model = self.USER_PROFILE_MODEL
+    #     query = select(
+    #         model,
+    #     ).options(
+    #         selectinload(model.start_notice_interval),
+    #     ).where(model.telegram_id == str(tg_id))
+    #     result = await self.session.execute(query)
+    #     user: UsersProfile = result.scalar_one_or_none()
+    #     start_notice_interval = user.start_notice_interval
+    #     if not start_notice_interval:
+    #         msg = 'Не найден начальный интервал оповещения'
+    #         bot_logger.exception(msg)
+    #         raise UserBotManager.StartNoticeInterval404(msg)
+    #     return start_notice_interval
+    #
+    # async def get_end_notice_interval(
+    #         self,
+    #         tg_id: str,
+    # ) -> EndNoticeInterval | None:
+    #     """Возвращает конечный интервал оповещения.
+    #     """
+    #     model = self.USER_PROFILE_MODEL
+    #     query = select(
+    #         model,
+    #     ).options(
+    #         selectinload(model.end_notice_interval),
+    #     ).where(model.telegram_id == str(tg_id))
+    #     result = await self.session.execute(query)
+    #     user: UsersProfile = result.scalar_one_or_none()
+    #     end_notice_interval = user.end_notice_interval
+    #     if not end_notice_interval:
+    #         msg = 'Не найден конечный интервал оповещения'
+    #         bot_logger.exception(msg)
+    #         raise UserBotManager.EndNoticeInterval404(msg)
+    #     return end_notice_interval
 
     # async def get_user_status(self, tg_id: str) -> StatusType | None:
     #     """Возвращает статуса пользователя.
@@ -158,188 +153,188 @@ class UserBotManager(BaseBotManager):
     #         variable=user.status_id,
     #     )
 
-    async def get_user_notice_type(self, tg_id: str) -> NoticeType | None:
-        """Возвращает тип оповещения пользователя.
-        """
-        user: UsersProfile = await self.get_by_field(
-            model=self.USER_PROFILE_MODEL,
-            field_name='telegram_id',
-            variable=str(tg_id),
-        )
-        user_notice_type = user.notice_type
-        if not user_notice_type:
-            msg = 'Не найден тип оповещения'
-            bot_logger.exception(msg)
-            raise UserBotManager.NoticeType404(msg)
-        return user_notice_type
+    # async def get_user_notice_type(self, tg_id: str) -> NoticeType | None:
+    #     """Возвращает тип оповещения пользователя.
+    #     """
+    #     user: UsersProfile = await self.get_by_field(
+    #         model=self.USER_PROFILE_MODEL,
+    #         field_name='telegram_id',
+    #         variable=str(tg_id),
+    #     )
+    #     user_notice_type = user.notice_type
+    #     if not user_notice_type:
+    #         msg = 'Не найден тип оповещения'
+    #         bot_logger.exception(msg)
+    #         raise UserBotManager.NoticeType404(msg)
+    #     return user_notice_type
 
-    async def get_user_all_notice_info(self, tg_id: str) -> dict:
-        """Возвращает всю информацию об оповещениях пользователя."""
-        model = self.USER_PROFILE_MODEL
-        query = select(model).options(
-            selectinload(model.notice_type),
-            selectinload(model.start_notice_interval),
-            selectinload(model.end_notice_interval),
-        ).where(model.telegram_id == str(tg_id))
+    # async def get_user_all_notice_info(self, tg_id: str) -> dict:
+    #     """Возвращает всю информацию об оповещениях пользователя."""
+    #     model = self.USER_PROFILE_MODEL
+    #     query = select(model).options(
+    #         selectinload(model.notice_type),
+    #         selectinload(model.start_notice_interval),
+    #         selectinload(model.end_notice_interval),
+    #     ).where(model.telegram_id == str(tg_id))
+    #
+    #     result = await self.session.execute(query)
+    #     user: UsersProfile = result.scalar_one_or_none()
+    #     return {
+    #         'notice_state': user.notice_state,
+    #         'notice_type': (user.notice_type.name
+    #                         if user.notice_type else None),
+    #         'start_notice_interval': (user.start_notice_interval.name
+    #                                   if user.start_notice_interval else None),
+    #         'end_notice_interval': (user.end_notice_interval.name
+    #                                 if user.end_notice_interval else None),
+    #     }
 
-        result = await self.session.execute(query)
-        user: UsersProfile = result.scalar_one_or_none()
-        return {
-            'notice_state': user.notice_state,
-            'notice_type': (user.notice_type.name
-                            if user.notice_type else None),
-            'start_notice_interval': (user.start_notice_interval.name
-                                      if user.start_notice_interval else None),
-            'end_notice_interval': (user.end_notice_interval.name
-                                    if user.end_notice_interval else None),
-        }
+    # async def edit_user_status(self,
+    #                            tg_id: str,
+    #                            status: str) -> UsersProfile:
+    #     """Обновляет статус пользователя в базе данных.
+    #     Параметры:
+    #     ----------
+    #     tg_id : str
+    #         Telegram ID пользователя.
+    #     status : str
+    #         Новый статус пользователя.
+    #     Возвращает:
+    #     ----------
+    #     UsersProfile | None
+    #     Обновленный профиль пользователя или None,
+    #     если не удалось изменить статус.
+    #     """
+    #     status_instance = await self.get_by_field(
+    #         model=self.STATUS_TYPE_MODEL,
+    #         field_name='name',
+    #         variable=status,
+    #     )
+    #     if not status_instance:
+    #         status_instance = await self.add_new_instance(
+    #             model=self.STATUS_TYPE_MODEL,
+    #             fields={'name': status},
+    #         )
+    #         await self.session.flush()
+    #     updated_user = await self.edit_one_value(
+    #         model=self.USER_PROFILE_MODEL,
+    #         field_name='telegram_id',
+    #         value=str(tg_id),
+    #         update_field_name='status_id',
+    #         new_value=status_instance.id,
+    #     )
+    #     return updated_user
 
-    async def edit_user_status(self,
-                               tg_id: str,
-                               status: str) -> UsersProfile:
-        """Обновляет статус пользователя в базе данных.
-        Параметры:
-        ----------
-        tg_id : str
-            Telegram ID пользователя.
-        status : str
-            Новый статус пользователя.
-        Возвращает:
-        ----------
-        UsersProfile | None
-        Обновленный профиль пользователя или None,
-        если не удалось изменить статус.
-        """
-        status_instance = await self.get_by_field(
-            model=self.STATUS_TYPE_MODEL,
-            field_name='name',
-            variable=status,
-        )
-        if not status_instance:
-            status_instance = await self.add_new_instance(
-                model=self.STATUS_TYPE_MODEL,
-                fields={'name': status},
-            )
-            await self.session.flush()
-        updated_user = await self.edit_one_value(
-            model=self.USER_PROFILE_MODEL,
-            field_name='telegram_id',
-            value=str(tg_id),
-            update_field_name='status_id',
-            new_value=status_instance.id,
-        )
-        return updated_user
+    # async def edit_user_notice_type(
+    #         self,
+    #         tg_id: str,
+    #         notice: str,
+    # ) -> UsersProfile:
+    #     """Обновляет тип оповещения пользователя в базе данных.
+    #     Параметры:
+    #     ----------
+    #     tg_id : str
+    #         Telegram ID пользователя.
+    #     notice : str
+    #         Новый вид оповещения.
+    #     Возвращает:
+    #     ----------
+    #     UsersProfile | None
+    #     Обновленный профиль пользователя или None,
+    #     если не удалось изменить тип оповещения.
+    #     """
+    #     notice_instance = await self.get_by_field(
+    #         model=self.NOTICE_TYPE_MODEL,
+    #         field_name='name',
+    #         variable=notice,
+    #     )
+    #     if not notice_instance:
+    #         notice_instance = await self.add_new_instance(
+    #             model=self.NOTICE_TYPE_MODEL,
+    #             fields={'name': notice},
+    #         )
+    #         await self.session.flush()
+    #     updated_user = await self.edit_one_value(
+    #         model=self.USER_PROFILE_MODEL,
+    #         field_name='telegram_id',
+    #         value=str(tg_id),
+    #         update_field_name='notice_type_id',
+    #         new_value=notice_instance.id,
+    #     )
+    #     return updated_user
 
-    async def edit_user_notice_type(
-            self,
-            tg_id: str,
-            notice: str,
-    ) -> UsersProfile:
-        """Обновляет тип оповещения пользователя в базе данных.
-        Параметры:
-        ----------
-        tg_id : str
-            Telegram ID пользователя.
-        notice : str
-            Новый вид оповещения.
-        Возвращает:
-        ----------
-        UsersProfile | None
-        Обновленный профиль пользователя или None,
-        если не удалось изменить тип оповещения.
-        """
-        notice_instance = await self.get_by_field(
-            model=self.NOTICE_TYPE_MODEL,
-            field_name='name',
-            variable=notice,
-        )
-        if not notice_instance:
-            notice_instance = await self.add_new_instance(
-                model=self.NOTICE_TYPE_MODEL,
-                fields={'name': notice},
-            )
-            await self.session.flush()
-        updated_user = await self.edit_one_value(
-            model=self.USER_PROFILE_MODEL,
-            field_name='telegram_id',
-            value=str(tg_id),
-            update_field_name='notice_type_id',
-            new_value=notice_instance.id,
-        )
-        return updated_user
+    # async def edit_user_notice_state(
+    #         self,
+    #         tg_id: str,
+    #         state: str,
+    # ) -> UsersProfile:
+    #     """
+    #
+    #     """
+    #     return await self.edit_one_value(
+    #         model=self.USER_PROFILE_MODEL,
+    #         field_name='telegram_id',
+    #         value=str(tg_id),
+    #         update_field_name='notice_state',
+    #         new_value=str(state),
+    #     )
 
-    async def edit_user_notice_state(
-            self,
-            tg_id: str,
-            state: str,
-    ) -> UsersProfile:
-        """
-
-        """
-        return await self.edit_one_value(
-            model=self.USER_PROFILE_MODEL,
-            field_name='telegram_id',
-            value=str(tg_id),
-            update_field_name='notice_state',
-            new_value=str(state),
-        )
-
-    async def edit_user_start_notice_hour(
-            self,
-            tg_id: str,
-            value: str,
-    ) -> UsersProfile:
-        """
-
-        """
-        model = self.START_NOTICE_INTERVAL_MODEL
-        notice_hour_instance = await self.get_by_field(
-            model=model,
-            field_name='name',
-            variable=value,
-        )
-        if not notice_hour_instance:
-            notice_hour_instance = await self.add_new_instance(
-                model=model,
-                fields={'name': value},
-            )
-            await self.session.flush()
-
-        return await self.edit_one_value(
-            model=self.USER_PROFILE_MODEL,
-            field_name='telegram_id',
-            value=str(tg_id),
-            update_field_name='start_notice_interval_id',
-            new_value=notice_hour_instance.id,
-        )
-
-    async def edit_user_end_notice_hour(
-            self,
-            tg_id: str,
-            value: str,
-    ) -> UsersProfile:
-        """
-
-        """
-        model = self.END_NOTICE_INTERVAL_MODEL
-        notice_hour_instance = await self.get_by_field(
-            model=model,
-            field_name='name',
-            variable=value,
-        )
-        if not notice_hour_instance:
-            notice_hour_instance = await self.add_new_instance(
-                model=model,
-                fields={'name': value},
-            )
-            await self.session.flush()
-        return await self.edit_one_value(
-            model=self.USER_PROFILE_MODEL,
-            field_name='telegram_id',
-            value=str(tg_id),
-            update_field_name='end_notice_interval_id',
-            new_value=notice_hour_instance.id,
-        )
+    # async def edit_user_start_notice_hour(
+    #         self,
+    #         tg_id: str,
+    #         value: str,
+    # ) -> UsersProfile:
+    #     """
+    #
+    #     """
+    #     model = self.START_NOTICE_INTERVAL_MODEL
+    #     notice_hour_instance = await self.get_by_field(
+    #         model=model,
+    #         field_name='name',
+    #         variable=value,
+    #     )
+    #     if not notice_hour_instance:
+    #         notice_hour_instance = await self.add_new_instance(
+    #             model=model,
+    #             fields={'name': value},
+    #         )
+    #         await self.session.flush()
+    #
+    #     return await self.edit_one_value(
+    #         model=self.USER_PROFILE_MODEL,
+    #         field_name='telegram_id',
+    #         value=str(tg_id),
+    #         update_field_name='start_notice_interval_id',
+    #         new_value=notice_hour_instance.id,
+    #     )
+    #
+    # async def edit_user_end_notice_hour(
+    #         self,
+    #         tg_id: str,
+    #         value: str,
+    # ) -> UsersProfile:
+    #     """
+    #
+    #     """
+    #     model = self.END_NOTICE_INTERVAL_MODEL
+    #     notice_hour_instance = await self.get_by_field(
+    #         model=model,
+    #         field_name='name',
+    #         variable=value,
+    #     )
+    #     if not notice_hour_instance:
+    #         notice_hour_instance = await self.add_new_instance(
+    #             model=model,
+    #             fields={'name': value},
+    #         )
+    #         await self.session.flush()
+    #     return await self.edit_one_value(
+    #         model=self.USER_PROFILE_MODEL,
+    #         field_name='telegram_id',
+    #         value=str(tg_id),
+    #         update_field_name='end_notice_interval_id',
+    #         new_value=notice_hour_instance.id,
+    #     )
 
     # async def change_user_status_after_first_add_account(
     #         self,

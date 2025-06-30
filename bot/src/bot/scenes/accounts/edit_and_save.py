@@ -11,7 +11,10 @@ import settings as setting
 from bot.crud.user import user_crud
 from bot.enums.profile_enums import BotMessage
 from bot.enums.scene_enums import SceneName, UtilityName
-from bot.keyboards.accounts import check_or_add_or_request_account, CALLBACK_DATA_ACCOUNT_KEYBOARD
+from bot.keyboards.accounts import (
+    CALLBACK_DATA_ACCOUNT_KEYBOARD,
+    check_or_add_or_request_account,
+)
 from bot.keyboards.main import main_kb
 from bot.scenes.accounts.schemas import AccountInput
 from db.core import async_session
