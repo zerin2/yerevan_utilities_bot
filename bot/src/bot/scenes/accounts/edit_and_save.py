@@ -7,11 +7,12 @@ from aiogram.fsm.scene import Scene, on
 from aiogram.types import CallbackQuery, Message
 from pydantic import ValidationError
 
-import bot.keyboards as kb
 import settings as setting
-from bot.crud._composite_manager import CompositeManager
+from bot.crud.user import user_crud
 from bot.enums.profile_enums import BotMessage
 from bot.enums.scene_enums import SceneName, UtilityName
+from bot.keyboards.accounts import check_or_add_or_request_account, CALLBACK_DATA_ACCOUNT_KEYBOARD
+from bot.keyboards.main import main_kb
 from bot.scenes.accounts.schemas import AccountInput
 from db.core import async_session
 
@@ -63,7 +64,7 @@ class EditAccountScene(Scene):
             await message.answer(
                 BotMessage.SUCCESS_EDIT.value.format(account_number=cleaned_value),
                 parse_mode='Markdown',
-                reply_markup=kb.main_kb(),
+                reply_markup=main_kb(),
             )
             current_state = await state.get_state()
             utility = SceneName.to_save(current_state)
@@ -89,21 +90,24 @@ class SaveAccountScene(Scene):
     @on.message.enter()
     async def handle_enter(self, message: Message, state: FSMContext) -> None:
         async with async_session() as session:
-            user_repo = CompositeManager(session)
+            # user_repo = CompositeManager(session)
             user_id = message.from_user.id
             user_account = message.text.strip()
             utility_name = self.mapping_account(await state.get_state())
             await user_repo.add_account_value_by_tg_id(
                 user_id, utility_name, user_account,
             )
-            await user_repo.change_user_status_after_first_add_account(user_id)
+            await user_crud.change_user_status_after_first_add_account(
+                session,
+                user_id,
+            )
             await session.commit()
             await message.answer(
                 BotMessage.CHOOSE_NEXT_TASK.value,
-                reply_markup=kb.check_or_add_or_request_account(),
+                reply_markup=check_or_add_or_request_account(),
             )
 
-    @on.callback_query(F.data.in_(kb.CALLBACK_DATA_ACCOUNT_KEYBOARD))
+    @on.callback_query(F.data.in_(CALLBACK_DATA_ACCOUNT_KEYBOARD))
     async def handle_add_account(self, callback: CallbackQuery) -> None:
         await callback.message.edit_reply_markup(reply_markup=None)
         await callback.answer()

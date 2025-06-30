@@ -29,8 +29,7 @@ class StartMsgScene(Scene, state=SceneName.START_MSG.value):
         )
         async with async_session() as session:
             user_id = message.from_user.id
-
-            await user_crud.add_user_if_not_exists(
+            await user_crud.create_user_if_not_exist(
                 session,
                 str(user_id),
             )
@@ -64,8 +63,11 @@ class StartMsgScene(Scene, state=SceneName.START_MSG.value):
                     ],
                 )
                 await session.commit()
-            user_status = await status_crud.get_status_by_id(user_status_id)
 
+            user_status = await status_crud.get_status_by_id(
+                session,
+                user_status_id,
+            )
             if user_status.name == UserAccountStatus.NEW.value:
                 await message.answer(
                     BotMessage.START.value.format(user_name=user_name),

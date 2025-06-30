@@ -1,17 +1,12 @@
 from aiogram import F
 from aiogram.fsm.scene import Scene, on
 from aiogram.types import CallbackQuery, Message
-from enums.profile_enums import BotMessage
-from enums.scene_enums import SceneName
-from enums.setting_enums import (
-    NoticeFlag,
-    NoticeInterval,
-    NoticeState,
-    NoticeType,
-)
 
-import bot.main.keyboards as kb
-from bot.manager.composite_manager import CompositeManager
+from bot.enums.notice_enums import NoticeInterval, NoticeState, NoticeType, NoticeFlag
+from bot.enums.profile_enums import BotMessage
+from bot.enums.scene_enums import SceneName
+from bot.keyboards.settings import change_setting_interval_notice, display_notice_type, \
+    display_notice_hours, display_notice_state
 from db.core import async_session
 from logs.config import bot_logger
 
@@ -45,7 +40,7 @@ class SettingScene(Scene, state=SceneName.SETTING.display):
                         end_period=NoticeInterval.to_human(end_hour),
                     ),
                     parse_mode='Markdown',
-                    reply_markup=kb.change_setting_interval_notice(),
+                    reply_markup=change_setting_interval_notice(),
                 )
             else:
                 await message.answer(
@@ -54,7 +49,7 @@ class SettingScene(Scene, state=SceneName.SETTING.display):
                         notice_type=NoticeType.to_human(notice_type),
                     ),
                     parse_mode='Markdown',
-                    reply_markup=kb.change_setting_interval_notice(),
+                    reply_markup=change_setting_interval_notice(),
                 )
 
     @on.callback_query(F.data == SceneName.NOTICE_INTERVAL.editor)
@@ -85,7 +80,7 @@ class EditNoticeStateScene(Scene, state=SceneName.NOTICE_STATE.editor):
         await callback.message.edit_reply_markup(reply_markup=None)
         await callback.message.answer(
             BotMessage.CHOOSE_NOTICE_STATE.value,
-            reply_markup=kb.display_notice_state(),
+            reply_markup=display_notice_state(),
         )
 
     @on.callback_query()
@@ -124,7 +119,7 @@ class EditNoticeIntervalScene(Scene, state=SceneName.NOTICE_INTERVAL.editor):
         await callback.message.edit_reply_markup(reply_markup=None)
         await callback.message.answer(
             BotMessage.CHOOSE_NOTICE_TYPE.value,
-            reply_markup=kb.display_notice_type(),
+            reply_markup=display_notice_type(),
         )
 
     @on.callback_query()
@@ -170,8 +165,10 @@ class EditPeriodNoticeInterval(Scene, state=NoticeType.PERIOD.value):
         """
         await callback.message.answer(
             'Выберите начало периода: ',
-            reply_markup=kb.display_notice_hours(rows=4,
-                                                 flag=NoticeFlag.START.value),
+            reply_markup=display_notice_hours(
+                rows=4,
+                                                 flag=NoticeFlag.START.value,
+            ),
         )
 
     @on.callback_query(
@@ -203,8 +200,10 @@ class EditPeriodNoticeInterval(Scene, state=NoticeType.PERIOD.value):
             await callback.message.delete()
             await callback.message.answer(
                 'Выберите конец периода: ',
-                reply_markup=kb.display_notice_hours(rows=4,
-                                                     flag=NoticeFlag.END.value),
+                reply_markup=display_notice_hours(
+                    rows=4,
+                                                     flag=NoticeFlag.END.value,
+                ),
             )
 
     @on.callback_query(

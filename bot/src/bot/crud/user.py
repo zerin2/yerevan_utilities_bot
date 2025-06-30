@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.crud.base import CRUDBase
 from bot.crud.notice import notice_type_crud
 from bot.crud.status import status_crud
-from db.models.models import UserProfile
+from bot.enums.setting_enums import UserAccountStatus
+from db.models.models import UserProfile, StatusType
 
 
 class CRUDUser(CRUDBase):
@@ -101,6 +102,22 @@ class CRUDUser(CRUDBase):
         user.notice_state = (str(notice_state))
         await session.flush()
         return user
+
+    async def change_user_status_after_first_add_account(
+            self,
+            session: AsyncSession,
+            user_id: str,
+    ) -> UserProfile | None:
+        """Изменяет статус пользователя после добавления первого счета."""
+        user: UserProfile = await self.get_user_by_tg_id(session, user_id)
+        user_status_obj = status_crud.get_status_by_id(session, user.status_id)
+        if user_status_obj and user_status_obj.name == UserAccountStatus.NEW.value:
+            return await self.update_status(
+                session,
+                user_id,
+                UserAccountStatus.ACTIVE.value,
+            )
+        return None
 
 
 user_crud = CRUDUser(UserProfile)

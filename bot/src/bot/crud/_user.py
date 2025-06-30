@@ -1,19 +1,7 @@
-from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
-from bot_manager.service.handle_errors import handle_db_errors
-from enums.setting_enums import AccountStatus
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from bot.crud._base import BaseBotManager
-from db.models import (
-    EndNoticeInterval,
-    NoticeType,
-    StartNoticeInterval,
-    StatusType,
-    UsersHistory,
-    UsersProfile,
-)
 from logs.config import bot_logger
 
 
@@ -23,14 +11,7 @@ class UserBotManager(BaseBotManager):
     запись истории взаимодействия пользователя с ботом.
     """
 
-    class StartNoticeInterval404(Exception):
-        pass
 
-    class EndNoticeInterval404(Exception):
-        pass
-
-    class NoticeType404(Exception):
-        pass
 
     # async def get_user_by_tg_id(self, tg_id: str) -> UsersProfile | None:
     #     """Получение 'user' из бд по 'user_tg_id'."""
@@ -38,86 +19,86 @@ class UserBotManager(BaseBotManager):
     #         self.USER_PROFILE_MODEL, 'telegram_id', str(tg_id),
     #     )
 
-    @handle_db_errors
-    async def del_user_by_id(self, tg_id: str) -> None:
-        """Удаление 'user' из бд по 'user_tg_id'."""
-        return await self.delete_instance(
-            self.USER_PROFILE_MODEL, 'telegram_id', str(tg_id),
-        )
+    # @handle_db_errors
+    # async def del_user_by_id(self, tg_id: str) -> None:
+    #     """Удаление 'user' из бд по 'user_tg_id'."""
+    #     return await self.delete_instance(
+    #         self.USER_PROFILE_MODEL, 'telegram_id', str(tg_id),
+    #     )
+    #
+    # async def is_exist_user(self, tg_id: str) -> bool | None:
+    #     """Проверка, существует ли пользователь с указанным 'tg_id'."""
+    #     return await self.is_exist(
+    #         self.USER_PROFILE_MODEL, 'telegram_id', str(tg_id),
+    #     )
+    #
+    # @handle_db_errors
+    # async def add_user(self, tg_id: str) -> UsersProfile | None:
+    #     """Добавьте нового пользователя с 'user_tg_id',
+    #     если пользователь не существует.
+    #     """
+    #     return await self.add_new_instance(
+    #         self.USER_PROFILE_MODEL, {'telegram_id': str(tg_id)},
+    #     )
+    #
+    # @handle_db_errors
+    # async def add_user_if_not_exists(self, tg_id: str) -> UsersProfile | None:
+    #     """Проверяет, существует ли пользователь с заданным Telegram ID.
+    #     Если пользователь не существует в базе данных, создаёт нового пользователя.
+    #     """
+    #     if not await self.is_exist_user(str(tg_id)):
+    #         return await self.add_user(str(tg_id))
+    #     return None
 
-    async def is_exist_user(self, tg_id: str) -> bool | None:
-        """Проверка, существует ли пользователь с указанным 'tg_id'."""
-        return await self.is_exist(
-            self.USER_PROFILE_MODEL, 'telegram_id', str(tg_id),
-        )
+    # @handle_db_errors
+    # async def get_or_create_user(self, tg_id: str) -> UsersProfile:
+    #     """Получает пользователя по его Telegram ID,
+    #     если такой пользователь существует.
+    #     Если пользователь не найден,
+    #     создаёт нового пользователя с указанным Telegram ID
+    #     и возвращает его.
+    #     """
+    #     user = await self.get_user_by_tg_id(str(tg_id))
+    #     if user:
+    #         return user
+    #     await self.add_user(str(tg_id))
+    #     user = await self.get_user_by_tg_id(str(tg_id))
+    #     return user
 
-    @handle_db_errors
-    async def add_user(self, tg_id: str) -> UsersProfile | None:
-        """Добавьте нового пользователя с 'user_tg_id',
-        если пользователь не существует.
-        """
-        return await self.add_new_instance(
-            self.USER_PROFILE_MODEL, {'telegram_id': str(tg_id)},
-        )
-
-    @handle_db_errors
-    async def add_user_if_not_exists(self, tg_id: str) -> UsersProfile | None:
-        """Проверяет, существует ли пользователь с заданным Telegram ID.
-        Если пользователь не существует в базе данных, создаёт нового пользователя.
-        """
-        if not await self.is_exist_user(str(tg_id)):
-            return await self.add_user(str(tg_id))
-        return None
-
-    @handle_db_errors
-    async def get_or_create_user(self, tg_id: str) -> UsersProfile:
-        """Получает пользователя по его Telegram ID,
-        если такой пользователь существует.
-        Если пользователь не найден,
-        создаёт нового пользователя с указанным Telegram ID
-        и возвращает его.
-        """
-        user = await self.get_user_by_tg_id(str(tg_id))
-        if user:
-            return user
-        await self.add_user(str(tg_id))
-        user = await self.get_user_by_tg_id(str(tg_id))
-        return user
-
-    @handle_db_errors
-    async def write_history(
-            self, message: Message, state: FSMContext | str = '',
-    ) -> UsersHistory | None:
-        """Запись информации о сообщениях пользователей в бд,
-        сохраняя историю взаимодействий с ботом.
-        Проверяет, существует ли пользователь в базе данных,
-        и добавляет его, если его нет.
-        """
-        user_id = message.from_user.id
-        chat_id = message.chat.id
-        message_id = message.message_id
-        message_content = message.text
-
-        if isinstance(state, FSMContext):
-            state = str(await state.get_data())
-
-        user = await self.get_or_create_user(user_id)
-
-        if not user:
-            raise ValueError(
-                'Передано пустое значение в \'user\'.',
-            )
-        user_instance = await self.add_new_instance(
-            self.USER_HISTORY_MODEL,
-            {
-                'user_id': user.id,
-                'chat_id': chat_id,
-                'message_id': message_id,
-                'message_content': message_content,
-                'state': state,
-            },
-        )
-        return user_instance
+    # @handle_db_errors
+    # async def write_history(
+    #         self, message: Message, state: FSMContext | str = '',
+    # ) -> UsersHistory | None:
+    #     """Запись информации о сообщениях пользователей в бд,
+    #     сохраняя историю взаимодействий с ботом.
+    #     Проверяет, существует ли пользователь в базе данных,
+    #     и добавляет его, если его нет.
+    #     """
+    #     user_id = message.from_user.id
+    #     chat_id = message.chat.id
+    #     message_id = message.message_id
+    #     message_content = message.text
+    #
+    #     if isinstance(state, FSMContext):
+    #         state = str(await state.get_data())
+    #
+    #     user = await self.get_or_create_user(user_id)
+    #
+    #     if not user:
+    #         raise ValueError(
+    #             'Передано пустое значение в \'user\'.',
+    #         )
+    #     user_instance = await self.add_new_instance(
+    #         self.USER_HISTORY_MODEL,
+    #         {
+    #             'user_id': user.id,
+    #             'chat_id': chat_id,
+    #             'message_id': message_id,
+    #             'message_content': message_content,
+    #             'state': state,
+    #         },
+    #     )
+    #     return user_instance
 
     async def get_start_notice_interval(
             self,
@@ -161,21 +142,21 @@ class UserBotManager(BaseBotManager):
             raise UserBotManager.EndNoticeInterval404(msg)
         return end_notice_interval
 
-    async def get_user_status(self, tg_id: str) -> StatusType | None:
-        """Возвращает статуса пользователя.
-        """
-        user: UsersProfile = await self.get_by_field(
-            model=self.USER_PROFILE_MODEL,
-            field_name='telegram_id',
-            variable=str(tg_id),
-        )
-        if not user or user.status_id is None:
-            return None
-        return await self.get_by_field(
-            model=self.STATUS_TYPE_MODEL,
-            field_name='id',
-            variable=user.status_id,
-        )
+    # async def get_user_status(self, tg_id: str) -> StatusType | None:
+    #     """Возвращает статуса пользователя.
+    #     """
+    #     user: UsersProfile = await self.get_by_field(
+    #         model=self.USER_PROFILE_MODEL,
+    #         field_name='telegram_id',
+    #         variable=str(tg_id),
+    #     )
+    #     if not user or user.status_id is None:
+    #         return None
+    #     return await self.get_by_field(
+    #         model=self.STATUS_TYPE_MODEL,
+    #         field_name='id',
+    #         variable=user.status_id,
+    #     )
 
     async def get_user_notice_type(self, tg_id: str) -> NoticeType | None:
         """Возвращает тип оповещения пользователя.
@@ -360,15 +341,15 @@ class UserBotManager(BaseBotManager):
             new_value=notice_hour_instance.id,
         )
 
-    async def change_user_status_after_first_add_account(
-            self,
-            user_id: str,
-    ) -> UsersProfile | None:
-        """Изменяет статус пользователя после добавления первого счета."""
-        current_status: StatusType | None = await self.get_user_status(user_id)
-        if current_status and current_status.name == AccountStatus.NEW.value:
-            return await self.edit_user_status(
-                user_id,
-                AccountStatus.ACTIVE.value,
-            )
-        return None
+    # async def change_user_status_after_first_add_account(
+    #         self,
+    #         user_id: str,
+    # ) -> UsersProfile | None:
+    #     """Изменяет статус пользователя после добавления первого счета."""
+    #     current_status: StatusType | None = await self.get_user_status(user_id)
+    #     if current_status and current_status.name == AccountStatus.NEW.value:
+    #         return await self.edit_user_status(
+    #             user_id,
+    #             AccountStatus.ACTIVE.value,
+    #         )
+    #     return None
