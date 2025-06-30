@@ -32,11 +32,11 @@ class UserBotManager(BaseBotManager):
     class NoticeType404(Exception):
         pass
 
-    async def get_user_by_tg_id(self, tg_id: str) -> UsersProfile | None:
-        """Получение 'user' из бд по 'user_tg_id'."""
-        return await self.get_by_field(
-            self.USER_PROFILE_MODEL, 'telegram_id', str(tg_id),
-        )
+    # async def get_user_by_tg_id(self, tg_id: str) -> UsersProfile | None:
+    #     """Получение 'user' из бд по 'user_tg_id'."""
+    #     return await self.get_by_field(
+    #         self.USER_PROFILE_MODEL, 'telegram_id', str(tg_id),
+    #     )
 
     @handle_db_errors
     async def del_user_by_id(self, tg_id: str) -> None:

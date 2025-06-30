@@ -6,7 +6,7 @@ from loguru import logger
 from bot.crud._base import BaseBotManager
 from bot.crud._user import UserBotManager
 from bot.enums.scene_enums import UtilityName
-from db.models import AccountsDetail, StatusType, UsersProfile, UtilitiesType
+from db.models import AccountsDetail, UsersProfile, UtilitiesType
 from exceptions import Account404
 
 
@@ -45,30 +45,30 @@ class AccountBotManager(BaseBotManager):
         return user_accounts
 
 
-class StatusTypeBotManager(BaseBotManager):
-    """Менеджер для работы с типами статусов."""
-
-    async def get_status_by_id(self, status_id: int) -> StatusType | None:
-        """Получение 'status_type' из модели(StatusType) по 'id'."""
-        return await self.get_by_field(self.STATUS_TYPE_MODEL, 'id', status_id)
-
-    async def get_status_by_name(self, status_name: str) -> StatusType | None:
-        """Получение 'status_type' из модели(StatusType) по 'name'."""
-        return await self.get_by_field(self.STATUS_TYPE_MODEL, 'name', status_name)
-
-    async def get_or_create_status_by_name(self, name: str) -> StatusType | None:
-        """Получение 'status_type' из модели(StatusType) по 'id'.
-        Если не существует, то создает и возвращает 'id'.
-        """
-        status = await self.get_status_by_name(name)
-        if status:
-            return status
-        await self.add_status_by_name(name)
-        return await self.get_status_by_name(name)
-
-    async def add_status_by_name(self, name: str) -> StatusType | None:
-        """Добавьте нового Status, если не существует."""
-        return await self.add_new_instance(self.STATUS_TYPE_MODEL, {'name': str(name)})
+# class StatusTypeBotManager(BaseBotManager):
+#     """Менеджер для работы с типами статусов."""
+#
+#     async def get_status_by_id(self, status_id: int) -> StatusType | None:
+#         """Получение 'status_type' из модели(StatusType) по 'id'."""
+#         return await self.get_by_field(self.STATUS_TYPE_MODEL, 'id', status_id)
+#
+#     async def get_status_by_name(self, status_name: str) -> StatusType | None:
+#         """Получение 'status_type' из модели(StatusType) по 'name'."""
+#         return await self.get_by_field(self.STATUS_TYPE_MODEL, 'name', status_name)
+#
+#     async def get_or_create_status_by_name(self, name: str) -> StatusType | None:
+#         """Получение 'status_type' из модели(StatusType) по 'id'.
+#         Если не существует, то создает и возвращает 'id'.
+#         """
+#         status = await self.get_status_by_name(name)
+#         if status:
+#             return status
+#         await self.add_status_by_name(name)
+#         return await self.get_status_by_name(name)
+#
+#     async def add_status_by_name(self, name: str) -> StatusType | None:
+#         """Добавьте нового Status, если не существует."""
+#         return await self.add_new_instance(self.STATUS_TYPE_MODEL, {'name': str(name)})
 
 
 class UtilitiesTypeBotManager(BaseBotManager):

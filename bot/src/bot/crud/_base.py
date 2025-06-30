@@ -8,16 +8,6 @@ import db.models as model
 from bot.handle_errors import handle_db_errors
 
 
-
-
-
-
-
-
-
-
-
-
 class BaseRepository:
     """Базовый репозиторий."""
 

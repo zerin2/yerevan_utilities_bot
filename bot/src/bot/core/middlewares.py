@@ -6,7 +6,7 @@ from aiogram.exceptions import TelegramNetworkError, TelegramRetryAfter
 from aiogram.types import Update
 from typing_extensions import Awaitable
 
-from bot.crud._composite_manager import CompositeManager
+from bot.crud.user_history import user_history_crud
 from db.core import async_session
 from logs.config import bot_logger
 
@@ -25,7 +25,34 @@ class CustomBaseMiddleware(BaseMiddleware):
 
 
 class SaveUserHistoryMiddleware(CustomBaseMiddleware):
-    """Сохраняет историю запросов в бд."""
+    """Middleware для автоматического сохранения истории действий пользователя в дб.
+
+    Описание:
+        - Каждый раз при обработке события (сообщения пользователя) сохраняет
+        ключевую информацию (user_id, chat_id, message_id, текст сообщения,
+        состояние пользователя) в таблицу истории.
+        - В случае возникновения ошибок сохраняет подробное сообщение
+        в лог (уровень CRITICAL), не прерывая обработку запроса.
+
+    Параметры:
+        handler: Callable
+            Функция-обработчик события, которая будет вызвана дальше по цепочке middleware.
+        event: Any
+            Событие (например, Message), содержащее информацию о входящем сообщении.
+        data: dict
+            Словарь с дополнительными данными, доступными для middleware и хендлеров.
+
+    Сохраняет в базу:
+        - user_id: ID пользователя Telegram
+        - chat_id: ID чата
+        - message_id: ID сообщения
+        - message_content: текст сообщения
+        - state: текущее состояние FSMContext (если есть)
+
+    Обработка ошибок:
+        - В случае возникновения исключения, пишет критическую ошибку в лог,
+          но не прерывает дальнейшее выполнение цепочки хендлеров.
+    """
 
     async def __call__(self, handler, event, data, **kwargs) -> Any:
         tg_handler = await handler(event, data)
@@ -35,11 +62,12 @@ class SaveUserHistoryMiddleware(CustomBaseMiddleware):
             data_state = data.get('state', '')
             user_state = await data_state.get_state()  # noqa
             if from_user and message:
-                user_tg_id = from_user.id
                 async with async_session() as session:
-                    user_repo = CompositeManager(session)
-                    await user_repo.add_user_if_not_exists(str(user_tg_id))
-                    await user_repo.write_history(message=message, state=user_state)
+                    await user_history_crud.write_history(
+                        session=session,
+                        message=message,
+                        state=user_state,
+                    )
                     await session.commit()
         except Exception as e:
             bot_logger.critical(

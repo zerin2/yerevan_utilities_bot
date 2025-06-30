@@ -6,6 +6,4 @@ class CRUDFeedback(CRUDBase):
     pass
 
 
-
-
 feedback_crud = CRUDFeedback(Feedback)
