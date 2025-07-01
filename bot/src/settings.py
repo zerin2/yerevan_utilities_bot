@@ -2,14 +2,13 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
+from bot.enums.notice_enums import NoticeState, NoticeType
 from bot.enums.scene_enums import UtilityName
 from bot.enums.setting_enums import (
-    NoticeState,
-    NoticeType,
     UserAccountStatus,
     UserPersonalSettings,
-    UtilityType,
 )
+from bot.enums.utility_enums import UtilityType
 
 BASEDIR_OUT = Path(__file__).resolve().parents[2]
 BASEDIR_PROJECT = Path(__file__).resolve().parents[1]
@@ -76,11 +75,10 @@ ACCOUNT_TYPE = {
     UtilityName.OVIO: UtilityType.PHONE.value,
 }
 
-PERSONAL_SETTINGS = {
+DEFAULT_PERSONAL_SETTINGS = {
     UserPersonalSettings.ACCOUNT_STATUS.value: UserAccountStatus.NEW.value,
     UserPersonalSettings.NOTICE_STATE.value: NoticeState.ON.value,
     UserPersonalSettings.NOTICE_TYPE.value: NoticeType.ANYTIME.value,
 }
-"""PERSONAL_SETTINGS (dict): Настройки по умолчанию для новых пользователей."""
 
 settings = Settings()

@@ -5,12 +5,12 @@ from dataclasses import dataclass
 from enum import Enum
 
 from enums.city_enums import CityName
+from exceptions import EmptyKeyError, StatusError
 from loguru import logger
 
 import workers.config as conf
 from bot.manager.composite_manager import CompositeManager
 from db.core import async_session
-from exceptions import EmptyKeyError, StatusError
 from settings import ACCOUNT_TYPE
 from workers.redis_task import RedisTask
 

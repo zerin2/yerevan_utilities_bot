@@ -1,11 +1,12 @@
 from aiogram.fsm.scene import Scene, on
 from aiogram.types import CallbackQuery, Message
-from enums.profile_enums import BotMessage
-from enums.scene_enums import FeedbackType, SceneName
 
-import bot.main.keyboards as kb
-import bot.main.utils as tool
-from bot.manager.composite_manager import CompositeManager
+from bot.crud.feedback import feedback_crud
+from bot.enums.feedback_enums import FeedbackType
+from bot.enums.profile_enums import BotMessage
+from bot.enums.scene_enums import SceneName
+from bot.keyboards.feedback import feedback_additional
+from bot.scenes.validators import ValidateText
 from db.core import async_session
 
 
@@ -17,7 +18,7 @@ class FeedbackScene(Scene, state=SceneName.FEEDBACK.display):
         await message.answer(BotMessage.FEEDBACK.value)
         await message.answer(
             BotMessage.FEEDBACK_ADDITIONAL.value,
-            reply_markup=kb.feedback_additional(),
+            reply_markup=feedback_additional(),
         )
 
     @on.callback_query()
@@ -64,13 +65,12 @@ class FeedbackReviewScene(Scene, state=SceneName.USUAL_REVIEW.editor):
         3. Если сообщение невалидно:
            - Уведомляет пользователя о необходимости повторного ввода.
         """
-        validator = tool.ValidateText(message)
+        validator = ValidateText(message)
         validate_message = await validator.validate()
-
         if validate_message:
             async with async_session() as session:
-                feedback_repo = CompositeManager(session)
-                await feedback_repo.save_feedback(
+                await feedback_crud.save_feedback(
+                    session=session,
                     tg_id=message.from_user.id,
                     feedback_type=FeedbackType.REVIEW.value,
                     feedback_text=validate_message,
@@ -119,15 +119,15 @@ class FoundErrorScene(Scene, state=SceneName.FOUND_ERROR.editor):
            - Уведомляет пользователя о необходимости повторного ввода.
         Исключения:
         -----------
-        Может генерировать исключения, связанные с базой данных, если сохранение не удалось.
+        Может генерировать исключения, связанные с базой данных,
+        если сохранение не удалось.
         """
-        validator = tool.ValidateText(message)
+        validator = ValidateText(message)
         validate_message = await validator.validate()
-
         if validate_message:
             async with async_session() as session:
-                feedback_repo = CompositeManager(session)
-                await feedback_repo.save_feedback(
+                await feedback_crud.save_feedback(
+                    session=session,
                     tg_id=message.from_user.id,
                     feedback_type=FeedbackType.ERROR.value,
                     feedback_text=validate_message,

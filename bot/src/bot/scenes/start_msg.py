@@ -44,21 +44,21 @@ class StartMsgScene(Scene, state=SceneName.START_MSG.value):
                 await user_crud.update_status(
                     session,
                     user_id,
-                    setting.PERSONAL_SETTINGS[
+                    setting.DEFAULT_PERSONAL_SETTINGS[
                         UserPersonalSettings.ACCOUNT_STATUS.value
                     ],
                 )
                 await user_crud.update_notice_type(
                     session,
                     user_id,
-                    setting.PERSONAL_SETTINGS[
+                    setting.DEFAULT_PERSONAL_SETTINGS[
                         UserPersonalSettings.NOTICE_TYPE.value
                     ],
                 )
                 await user_crud.update_notice_state(
                     session,
                     user_id,
-                    setting.PERSONAL_SETTINGS[
+                    setting.DEFAULT_PERSONAL_SETTINGS[
                         UserPersonalSettings.NOTICE_STATE.value
                     ],
                 )

@@ -3,9 +3,8 @@ import os
 from enum import Enum
 
 from dotenv import load_dotenv
-from redis import Redis
-
 from exceptions import ValidationError
+from redis import Redis
 
 load_dotenv()
 

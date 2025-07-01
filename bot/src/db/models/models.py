@@ -175,19 +175,23 @@ class UserAccount(BaseModel, DateTimeMixin):
     account_info: Mapped[Optional[str]] = mapped_column(
         String,
         nullable=True,
+        doc='Дополнительная информация об аккаунте.',
     )
     utility_type_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('utility_type.id', ondelete='SET NULL'),
         nullable=True,
         index=True,
+        doc='(fk) коммунальной услуги.',
     )
     city_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('city.id', ondelete='SET NULL'),
         nullable=True,
+        doc='(fk) города.',
     )
     address: Mapped[Optional[str]] = mapped_column(
         String(FieldLength.ADDRESS.value),
         nullable=True,
+        doc='Адрес.',
     )
     traffic: Mapped[Optional[str]] = mapped_column(
         String(FieldLength.TRAFFIC.value),
@@ -208,6 +212,7 @@ class UserAccount(BaseModel, DateTimeMixin):
         Integer,
         ForeignKey('status_type.id', ondelete='SET NULL'),
         nullable=True,
+        doc='(fk) статуса пользователя.',
     )
 
     user_profile: Mapped['UserProfile'] = relationship(
