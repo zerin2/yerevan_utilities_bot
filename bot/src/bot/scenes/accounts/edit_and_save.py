@@ -8,6 +8,7 @@ from aiogram.types import CallbackQuery, Message
 from pydantic import ValidationError
 
 import settings as setting
+from bot.crud.account import user_account_crud
 from bot.crud.user import user_crud
 from bot.enums.profile_enums import BotMessage
 from bot.enums.scene_enums import SceneName, UtilityName
@@ -35,7 +36,11 @@ class EditAccountScene(Scene):
         return None
 
     @on.callback_query.enter()
-    async def handle_edit(self, callback: CallbackQuery, state: FSMContext) -> None:
+    async def handle_edit(
+            self, callback:
+            CallbackQuery,
+            state: FSMContext,
+    ) -> None:
         """ """
         current_state = await state.get_state()
         utility_model_name = SceneName.to_utility_name(current_state)
@@ -65,7 +70,9 @@ class EditAccountScene(Scene):
             await message.answer(BotMessage.REPEAT_EDIT.value)
         else:
             await message.answer(
-                BotMessage.SUCCESS_EDIT.value.format(account_number=cleaned_value),
+                BotMessage.SUCCESS_EDIT.value.format(
+                    account_number=cleaned_value,
+                ),
                 parse_mode='Markdown',
                 reply_markup=main_kb(),
             )
@@ -93,12 +100,11 @@ class SaveAccountScene(Scene):
     @on.message.enter()
     async def handle_enter(self, message: Message, state: FSMContext) -> None:
         async with async_session() as session:
-            # user_repo = CompositeManager(session)
-            user_id = message.from_user.id
+            user_id = str(message.from_user.id)
             user_account = message.text.strip()
             utility_name = self.mapping_account(await state.get_state())
-            await user_repo.add_account_value_by_tg_id(
-                user_id, utility_name, user_account,
+            await user_account_crud.create_account(
+                session, user_id, user_account, utility_name,
             )
             await user_crud.change_user_status_after_first_add_account(
                 session,

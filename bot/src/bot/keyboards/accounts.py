@@ -5,7 +5,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
 )
 
-from bot.crud._composite_manager import CompositeManager
+from bot.crud.account import user_account_crud
 from bot.enums.scene_enums import SceneName
 from bot.enums.utility_enums import UtilityNameIcon
 from bot.keyboards.enums import KeyboardIcon, KeyboardText
@@ -50,8 +50,8 @@ class KeyboardStatusAccount:
 
         """
         async with async_session() as session:
-            user_repo = CompositeManager(session)
-            account_values = await user_repo.get_all_account_by_tg_id(
+            account_values = await user_account_crud.get_all_accounts(
+                session,
                 str(self.user_id),
             )
             return account_values or {}

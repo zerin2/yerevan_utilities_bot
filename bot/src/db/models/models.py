@@ -104,6 +104,10 @@ class UserProfile(BaseModel, DateTimeMixin):
         default=False,
         nullable=False,
     )
+    delivery_blocked_error: Mapped[Optional[str]] = mapped_column(
+        String(FieldLength.DELIVERY_ERROR.value),
+        nullable=True,
+    )
     status_id: Mapped[Optional[int]] = Column(
         Integer,
         ForeignKey('status_type.id', ondelete='SET NULL'),

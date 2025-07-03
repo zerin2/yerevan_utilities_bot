@@ -1,7 +1,8 @@
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
-from enums.profile_enums import BotMessage, BotWords
+
+from bot.enums.profile_enums import BotMessage, BotWords
 
 help_info_router = Router()
 

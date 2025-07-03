@@ -4,19 +4,14 @@ from dataclasses import dataclass
 import aiogram.exceptions as exc
 from aiogram import Bot
 
-from bot.manager.composite_manager import CompositeManager
+from bot.crud.user import user_crud
+from bot.enums.setting_enums import FieldLength, SendTelegramError
 from db.core import async_session
+from db.models.models import UserProfile
 from logs.config import worker_logger
 from settings import settings
 
 LITE_RETRY_DELAY = 2
-LITE_ERRORS = (exc.TelegramNetworkError, exc.TelegramRetryAfter)
-CRITICAL_ERRORS = (
-    exc.TelegramNotFound,
-    exc.TelegramUnauthorizedError,
-    exc.TelegramForbiddenError,
-    Exception,
-)
 
 
 @dataclass
@@ -25,14 +20,16 @@ class BotSender:
     обработкой ошибок и сохранением статуса доставки.
 
     Атрибуты:
-        bot (Bot): Экземпляр Telegram-бота (инициализируется автоматически).#
-        tg_id (str | int): Telegram ID пользователя, которому отправляется сообщение.#
+        bot (Bot): Экземпляр Telegram-бота (инициализируется автоматически).
+        telegram_id (str | int): Telegram ID пользователя,
+        которому отправляется сообщение.
         message (str): Текст отправляемого сообщения.
 
     Поведение:
-        - При временных ошибках (сетевые, ограничение по времени) повторяет отправку с задержкой.
+        - При временных ошибках (сетевые, ограничение по времени)
+        повторяет отправку с задержкой.
         - При критических ошибках (бот заблокирован, пользователь удалён и т.д.)
-         прекращает отправку и записывает статус ошибки в базу данных (`is_delivery_blocked`).
+         прекращает отправку и записывает статус ошибки в базу данных.
         - Всегда закрывает сессию бота после завершения попыток отправки.
 
     Методы:
@@ -41,36 +38,41 @@ class BotSender:
     """
 
     bot: Bot = None
-    tg_id: str | int = None
+    telegram_id: str | int = None
     message: str = None
 
     def __post_init__(self):
         self.bot = Bot(token=settings.telegram_token)
-        self.tg_id = int(self.tg_id)
         self.message = str(self.message)
 
     async def send_message(self):
         error_msg = (
             '{error_cls} Ошибка отправки '
-            'сообщения пользователю: {tg_id}, ошибка: {e}'
+            'сообщения пользователю: {telegram_id}, ошибка: {e}'
         )
         success_msg = (
             'Сообщение отправлено. '
-            'UserID: {tg_id}, сообщение: {message}'
+            'UserID: {telegram_id}, сообщение: {message}'
+        )
+        user_404 = (
+            'Ошибка отправки сообщения, '
+            'пользователь не найден: {telegram_id}'
         )
         try:
             while True:
                 try:
-                    await self.bot.send_message(self.tg_id, self.message)
+                    await self.bot.send_message(
+                        int(self.telegram_id), self.message,
+                    )
                     worker_logger.info(success_msg.format(
-                        tg_id=self.tg_id,
+                        telegram_id=str(self.telegram_id),
                         message=self.message,
                     ))
                     return
-                except LITE_ERRORS as e:
+                except SendTelegramError.LITE_ERRORS.value as e:
                     worker_logger.error(error_msg.format(
                         error_cls=e.__class__.__name__,
-                        tg_id=self.tg_id,
+                        telegram_id=str(self.telegram_id),
                         e=e,
                     ))
                     await asyncio.sleep(
@@ -78,20 +80,24 @@ class BotSender:
                         if isinstance(e, exc.TelegramRetryAfter)
                         else LITE_RETRY_DELAY,
                     )
-                except CRITICAL_ERRORS as e:
+                except SendTelegramError.CRITICAL_ERRORS.value as e:
                     async with async_session() as session:
-                        user_repo = CompositeManager(session)
-                        await user_repo.edit_one_value(
-                            user_repo.USER_PROFILE_MODEL,
-                            'telegram_id',
-                            str(self.tg_id),
-                            'is_delivery_blocked',
-                            str(e.__class__.__name__),
+                        user_obj: UserProfile = await user_crud.get_user_by_tg_id(
+                            session, str(self.telegram_id),
                         )
-                        await session.commit()
+                        if user_obj is not None:
+                            user_obj.is_delivery_blocked = True
+                            user_obj.delivery_blocked_error = str(
+                                e.__class__.__name__,
+                            )[:FieldLength.DELIVERY_ERROR.value]
+                            await session.commit()
+                        else:
+                            worker_logger.error(user_404.format(
+                                telegram_id=str(self.telegram_id),
+                            ))
                     worker_logger.error(error_msg.format(
                         error_cls=e.__class__.__name__,
-                        tg_id=self.tg_id,
+                        telegram_id=str(self.telegram_id),
                         e=e,
                     ))
                     break
@@ -105,28 +111,3 @@ class BotSender:
 #
 #
 # asyncio.run(main())
-
-
-# {'tg_id': '259564426',
-# 'task_id': '3f335481',
-# 'count': 3,
-# 'status':  'complete',
-# 'notify': True,
-# 'account': '0390315',
-# 'account_type': 'code',
-# 'utility': 'electricity',
-# 'first_check': False,
-# 'response':
-# {'address': 'ք.ԵՐԵՎԱՆ ԳԱՐԵԳԻՆ ՆԺԴԵՀԻ փող., 5, 15',
-# 'traffic': 'Ց-2.680, Գ-1.200/3561.630', 'debit': '0', 'credit': '332.55'}}
-
-# {'tg_id': '259564426',
-# 'task_id': '435148b3',
-# 'count': 3,
-# 'status': 'error',
-# 'notify': True,
-# 'account': '12321312',
-# 'account_type': 'code',
-# 'utility': 'gas',
-# 'first_check': False,
-# 'response': '(Account404) Аккаунт не найден'}

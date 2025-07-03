@@ -1,9 +1,9 @@
 from aiogram.fsm.scene import Scene, on
 from aiogram.types import CallbackQuery, Message
-from enums.profile_enums import BotMessage
-from enums.scene_enums import SceneName
 
-from bot.manager.composite_manager import CompositeManager
+from bot.crud.account import user_account_crud
+from bot.enums.profile_enums import BotMessage
+from bot.enums.scene_enums import SceneName
 from db.core import async_session
 
 
@@ -25,9 +25,10 @@ class CheckDataAccountScene(Scene, state=SceneName.DATA.check):
     @on.callback_query.enter()
     async def handle_enter(self, callback: CallbackQuery) -> None:
         async with async_session() as session:
-            user_id = callback.from_user.id
-            user_repo = CompositeManager(session)
-            user_accounts = await user_repo.get_all_account_by_tg_id(str(user_id))
+            user_id = str(callback.from_user.id)
+            user_accounts = await user_account_crud.get_all_accounts(
+                session, user_id,
+            )
             account_keys = [_ for _ in user_accounts.values()]
             for key in account_keys:
                 if isinstance(key, str):
