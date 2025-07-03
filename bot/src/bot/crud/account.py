@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -69,7 +69,7 @@ class CRUDUserAccount(CRUDBase):
             session: AsyncSession,
             telegram_id: str,
             utility: UtilityName,
-            data: dict,
+            data: dict[str, Any],
     ) -> UserAccount:
         """Обновляет переданные поля в модели UserAccount."""
         account_obj: UserAccount = await self.get_account(
@@ -106,7 +106,7 @@ class CRUDUserAccount(CRUDBase):
         )
         return account.scalars().first()
 
-    async def get_all_account(
+    async def get_all_accounts(
             self,
             session: AsyncSession,
             telegram_id: str,

@@ -23,7 +23,7 @@ class CRUDUserHistory(CRUDBase):
         if isinstance(state, FSMContext):
             state = str(await state.get_data())
         user_obj: UserProfile = await user_crud.get_or_create_user(
-            session, user_id
+            session, user_id,
         )
         return self.create(
             session,
