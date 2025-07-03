@@ -7,7 +7,7 @@ from bot.crud.status import status_crud
 from bot.crud.user import user_crud
 from bot.enums.profile_enums import BotMessage
 from bot.enums.scene_enums import SceneName
-from bot.enums.setting_enums import UserAccountStatus, UserPersonalSettings
+from bot.enums.setting_enums import Status, UserPersonalSettings
 from bot.keyboards.accounts import CALLBACK_DATA_ACCOUNT_KEYBOARD, add_accounts
 from bot.keyboards.main import display_debt, main_kb, mini_main_kb
 from db.core import async_session
@@ -68,7 +68,7 @@ class StartMsgScene(Scene, state=SceneName.START_MSG.value):
                 session,
                 user_status_id,
             )
-            if user_status.name == UserAccountStatus.NEW.value:
+            if user_status.name == Status.NEW.value:
                 await message.answer(
                     BotMessage.START.value.format(user_name=user_name),
                     parse_mode='Markdown',

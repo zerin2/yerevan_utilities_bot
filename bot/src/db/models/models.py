@@ -212,7 +212,7 @@ class UserAccount(BaseModel, DateTimeMixin):
         Integer,
         ForeignKey('status_type.id', ondelete='SET NULL'),
         nullable=True,
-        doc='(fk) статуса пользователя.',
+        doc='(fk) статуса счета пользователя.',
     )
 
     user_profile: Mapped['UserProfile'] = relationship(

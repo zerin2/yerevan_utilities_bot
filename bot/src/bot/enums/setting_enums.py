@@ -13,7 +13,7 @@ class FieldLength(int, Enum):
     NOTICE_STATE = 10
 
 
-class UserAccountStatus(Enum):
+class Status(Enum):
     NEW = 'new'
     ACTIVE = 'active'
     INACTIVE = 'inactive'

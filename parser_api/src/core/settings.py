@@ -35,8 +35,18 @@ class Settings(BaseSettings):
     def redis_url(self) -> str:
         """Сформированная строка подключения к Redis."""
         if self.debug:
-            return f'redis://{self.test_redis_host}:{self.redis_port}/{self.redis_parser_db}'
-        return f'redis://{self.redis_host}:{self.redis_port}/{self.redis_parser_db}'
+            return (
+                f'redis://'
+                f'{self.test_redis_host}'
+                f':{self.redis_port}'
+                f'/{self.redis_parser_db}'
+            )
+        return (
+            f'redis://'
+            f'{self.redis_host}'
+            f':{self.redis_port}'
+            f'/{self.redis_parser_db}'
+        )
 
     class Config:
         """Внутренние настройки класса Settings."""

@@ -5,10 +5,19 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.crud.base import CRUDBase
+from bot.crud.city import city_crud
+from bot.crud.status import status_crud
 from bot.crud.user import user_crud
 from bot.crud.utility import utility_crud
+from bot.enums.setting_enums import Status
 from bot.enums.utility_enums import UtilityName
-from db.models.models import UserAccount, UserProfile, UtilityType
+from db.models.models import (
+    City,
+    StatusType,
+    UserAccount,
+    UserProfile,
+    UtilityType,
+)
 
 
 class CRUDUserAccount(CRUDBase):
@@ -19,13 +28,40 @@ class CRUDUserAccount(CRUDBase):
             account: str,
             utility_type: UtilityName,
             account_info: str = None,
-            city_id: int = None,
+            city: str = None,
             address: str = None,
             traffic: str = None,
             credit: Decimal = None,
             debit: Decimal = None,
-            status_id: int = None,
+            account_status: Status  = Status.NEW.value,
     ) -> UserAccount:
+        """"""
+        utility_obj: UtilityType = await utility_crud.get_or_create_utility(
+            session, utility_type,
+        )
+        status_obj: StatusType = await status_crud.get_or_create_status(
+            session, account_status,
+        )
+        city_obj: City = await city_crud.get_or_create_city(
+            session, city,
+        )
+        return self.create(
+            session,
+            dict(
+                telegram_id=str(telegram_id),
+                account=account,
+                account_info=account_info,
+                utility_type_id=utility_obj.id,
+                city_id=city_obj.id,
+                address=address,
+                traffic=traffic,
+                credit=credit,
+                debit=debit,
+                status_id=status_obj.id,
+            ),
+        )
+
+    async def update_account(self):
         pass
 
     async def get_account(
@@ -36,10 +72,10 @@ class CRUDUserAccount(CRUDBase):
     ) -> Optional[UserAccount]:
         """Получение счета пользователя по utility_name и telegram_id."""
         user: UserProfile = await user_crud.get_user_by_tg_id(
-            session, telegram_id
+            session, telegram_id,
         )
         utility_obj: UtilityType = await utility_crud.get_utility_by_name(
-            session, utility
+            session, utility,
         )
         if not user or not utility_obj:
             return None
@@ -48,8 +84,8 @@ class CRUDUserAccount(CRUDBase):
         account = await session.execute(
             select(self.model).where(
                 (user_id_field == user.id) &
-                (utility_type_id_field == utility_obj.id)
-            )
+                (utility_type_id_field == utility_obj.id),
+            ),
         )
         return account.scalars().first()
 
@@ -60,18 +96,23 @@ class CRUDUserAccount(CRUDBase):
     ) -> list[UserAccount]:
         """Получение всех счетов пользователя по telegram_id."""
         user: UserProfile = await user_crud.get_user_by_tg_id(
-            session, telegram_id
+            session, telegram_id,
         )
         if not user:
             return []
         return user.user_account
 
-
-    async def delete_account(self):
-        pass
-
-    async def update_account(self):
-        pass
+    async def delete_account(
+            self,
+            session: AsyncSession,
+            telegram_id: str,
+            utility: UtilityName,
+    ) -> None:
+        """Удаляет счет пользователя по utility_name и telegram_id."""
+        account: UserAccount = await self.get_account(
+            session, telegram_id, utility,
+        )
+        return await self.remove(session, account)
 
 
 user_account_crud = CRUDUserAccount(UserAccount)

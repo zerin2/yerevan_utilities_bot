@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 from bot.enums.notice_enums import NoticeState, NoticeType
 from bot.enums.scene_enums import UtilityName
 from bot.enums.setting_enums import (
-    UserAccountStatus,
+    Status,
     UserPersonalSettings,
 )
 from bot.enums.utility_enums import UtilityType
@@ -76,7 +76,7 @@ ACCOUNT_TYPE = {
 }
 
 DEFAULT_PERSONAL_SETTINGS = {
-    UserPersonalSettings.ACCOUNT_STATUS.value: UserAccountStatus.NEW.value,
+    UserPersonalSettings.ACCOUNT_STATUS.value: Status.NEW.value,
     UserPersonalSettings.NOTICE_STATE.value: NoticeState.ON.value,
     UserPersonalSettings.NOTICE_TYPE.value: NoticeType.ANYTIME.value,
 }
