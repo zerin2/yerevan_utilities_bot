@@ -19,7 +19,7 @@ ITF_FLAG = 'itf'
 
 
 class ParserITF(InitParser):
-    """Логика парсера для сайта (https://itfllc.am)."""
+    """Логика парсера ITF."""
 
     async def get_data(self):
         mapping = {

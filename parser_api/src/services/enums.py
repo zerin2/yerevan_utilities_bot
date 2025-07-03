@@ -26,8 +26,8 @@ class ProxyMessage(str, Enum):
 
 class WebshareProxy(Enum):
     TOKEN = settings.webshare_token
+    URL_LIST = settings.webshare_url_list
     LIST_NAME = 'webshare_proxy_list'
-    URL_LIST = 'https://proxy.webshare.io/api/v2/proxy/list/'
     PARAMS_URL_LIST = {'mode': 'direct'}
     HEADERS = {'Authorization': 'Token ' + TOKEN}
     RESULT_KEY = 'results'

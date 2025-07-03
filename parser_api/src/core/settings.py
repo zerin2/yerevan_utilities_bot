@@ -21,6 +21,16 @@ class Settings(BaseSettings):
     webshare_token: str
     webshare_login: str
     webshare_password: str
+    webshare_url_list: str
+
+    converse_bank_url_gas: str
+    converse_bank_url_gas_service: str
+    converse_bank_url_water: str
+    converse_bank_url_electricity: str
+
+    itf_url_gas: str
+    itf_url_water: str
+    itf_url_electricity: str
 
     api_parser_token: str
     debug: bool

@@ -16,6 +16,7 @@ from core.exceptions import (
     UrlFlagError,
 )
 from core.logger_settings import logger
+from core.settings import settings
 from services.enums import ProxySettings, WebshareProxy
 from services.parser.base import InitParser
 from services.parser.proxy import (
@@ -104,8 +105,8 @@ class Parser(InitParser):
             else:
                 self.proxy = {
                     'server': proxy_server,
-                    'username': raw_proxy.get('username'),
-                    'password': raw_proxy.get('password'),
+                    'username': settings.webshare_login,
+                    'password': settings.webshare_password,
                 }
             async with async_playwright() as p:
                 browser = await p.chromium.launch(headless=self.headless_config)

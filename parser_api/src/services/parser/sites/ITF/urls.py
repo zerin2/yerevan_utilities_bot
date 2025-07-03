@@ -1,13 +1,14 @@
 from enum import Enum
 
 from core.exceptions import ITFUrl404
+from core.settings import settings
 from services.enums import UtilityModelName
 
 
 class ITFUrl(str, Enum):
-    GAS = 'https://itfllc.am/ru/payments/pay/gazprom-armenia-sparoxakan-partq'
-    WATER = 'https://itfllc.am/hy/payments/pay/veolia-itf'
-    ELECTRICITY = 'https://itfllc.am/ru/payments/pay/ena-phone-number'
+    GAS = settings.itf_url_gas
+    WATER = settings.itf_url_water
+    ELECTRICITY = settings.itf_url_electricity
 
     @staticmethod
     def to_utility_url(utility: str) -> str:

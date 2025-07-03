@@ -1,14 +1,15 @@
 from enum import Enum
 
 from core.exceptions import ConverseBankUrl404
+from core.settings import settings
 from services.enums import UtilityModelName
 
 
 class ConverseBankUrl(str, Enum):
-    GAS = 'https://portal.conversebank.am/ru/providers/check-balance?id=66'
-    GAS_SERVICE = 'https://portal.conversebank.am/ru/providers/check-balance?id=67'
-    WATER = 'https://portal.conversebank.am/ru/providers/check-balance?id=64'
-    ELECTRICITY = 'https://portal.conversebank.am/ru/providers/check-balance?id=65'
+    GAS = settings.converse_bank_url_gas
+    GAS_SERVICE = settings.converse_bank_url_gas_service
+    WATER = settings.converse_bank_url_water
+    ELECTRICITY = settings.converse_bank_url_electricity
 
     @staticmethod
     def to_utility_url(utility: str) -> str:

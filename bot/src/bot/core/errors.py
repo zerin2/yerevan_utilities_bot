@@ -1,6 +1,7 @@
 from aiogram import F, Router
 from aiogram.types import Message
-from enums.profile_enums import BotMessage
+
+from bot.enums.profile_enums import BotMessage
 
 error_router = Router()
 

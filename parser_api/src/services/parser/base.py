@@ -9,7 +9,6 @@ from playwright.async_api import BrowserContext, Error, Page, TimeoutError
 import services.parser.config as conf
 from core.exceptions import ParserError
 from core.logger_settings import logger
-from core.settings import settings
 
 
 @dataclass
