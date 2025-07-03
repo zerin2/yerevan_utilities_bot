@@ -54,12 +54,12 @@ class CRUDUser(CRUDBase):
         """Создание нового user с telegram_id."""
         return await self.create(session, {'telegram_id': str(telegram_id)})
 
-    async def create_user_if_not_exist(
+    async def get_or_create_user(
             self,
             session: AsyncSession,
             telegram_id: str,
     ) -> UserProfile:
-        """Создание нового user с telegram_id."""
+        """Получение или создание нового user по telegram_id."""
         user = await self.get_user_by_tg_id(session, str(telegram_id))
         if not user:
             return self.create_user(session, str(telegram_id))

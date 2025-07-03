@@ -112,6 +112,7 @@ async def add_proxy_list_in_cash(
     for proxy in proxy_list:
         proxy['status'] = StatusType.OK.value
         proxy['failures'] = 0
+        # todo тут убираем ключи дополнительные
     try:
         await redis_client.set(
             proxy_list_name,

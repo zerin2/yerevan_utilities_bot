@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.crud.base import CRUDBase
 from bot.crud.user import user_crud
-from db.models.models import UserHistory
+from db.models.models import UserHistory, UserProfile
 
 
 class CRUDUserHistory(CRUDBase):
@@ -22,11 +22,13 @@ class CRUDUserHistory(CRUDBase):
 
         if isinstance(state, FSMContext):
             state = str(await state.get_data())
-        user = await user_crud.create_user_if_not_exist(session, user_id)
+        user_obj: UserProfile = await user_crud.get_or_create_user(
+            session, user_id
+        )
         return self.create(
             session,
             {
-                'user_id': user.id,
+                'user_id': user_obj.id,
                 'chat_id': chat_id,
                 'message_id': message_id,
                 'message_content': message_content,

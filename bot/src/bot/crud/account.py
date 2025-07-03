@@ -26,29 +26,32 @@ class CRUDUserAccount(CRUDBase):
             session: AsyncSession,
             telegram_id: str,
             account: str,
-            utility_type: UtilityName,
+            utility_name: UtilityName,
             account_info: str = None,
-            city: str = None,
+            city_name: str = None,
             address: str = None,
             traffic: str = None,
             credit: Decimal = None,
             debit: Decimal = None,
-            account_status: Status  = Status.NEW.value,
+            account_status: Status = Status.NEW.value,
     ) -> UserAccount:
-        """"""
+        """Создает расчетный счет пользователя."""
+        user_obj: UserProfile = await user_crud.get_or_create_user(
+            session, telegram_id,
+        )
         utility_obj: UtilityType = await utility_crud.get_or_create_utility(
-            session, utility_type,
+            session, utility_name,
         )
         status_obj: StatusType = await status_crud.get_or_create_status(
             session, account_status,
         )
         city_obj: City = await city_crud.get_or_create_city(
-            session, city,
+            session, city_name,
         )
         return self.create(
             session,
             dict(
-                telegram_id=str(telegram_id),
+                user_id=user_obj.id,
                 account=account,
                 account_info=account_info,
                 utility_type_id=utility_obj.id,
@@ -61,8 +64,22 @@ class CRUDUserAccount(CRUDBase):
             ),
         )
 
-    async def update_account(self):
-        pass
+    async def update_account(
+            self,
+            session: AsyncSession,
+            telegram_id: str,
+            utility: UtilityName,
+            data: dict,
+    ) -> UserAccount:
+        """Обновляет переданные поля в модели UserAccount."""
+        account_obj: UserAccount = await self.get_account(
+            session, telegram_id, utility,
+        )
+        return await self.update_by_id(
+            session,
+            account_obj.id,
+            data,
+        )
 
     async def get_account(
             self,
@@ -112,6 +129,8 @@ class CRUDUserAccount(CRUDBase):
         account: UserAccount = await self.get_account(
             session, telegram_id, utility,
         )
+        if not account:
+            return None
         return await self.remove(session, account)
 
 

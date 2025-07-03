@@ -29,17 +29,13 @@ class StartMsgScene(Scene, state=SceneName.START_MSG.value):
         )
         async with async_session() as session:
             user_id = message.from_user.id
-            await user_crud.create_user_if_not_exist(
+            user_obj: UserProfile = await user_crud.get_or_create_user(
                 session,
                 str(user_id),
             )
             await session.flush()
 
-            user: UserProfile = await user_crud.get_user_by_tg_id(
-                session,
-                user_id,
-            )
-            user_status_id = user.status_id
+            user_status_id = user_obj.status_id
             if not user_status_id:
                 await user_crud.update_status(
                     session,
