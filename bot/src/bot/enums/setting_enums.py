@@ -7,6 +7,7 @@ class Status(Enum):
     NEW = 'new'
     ACTIVE = 'active'
     INACTIVE = 'inactive'
+    ERROR = 'error'
 
 
 class UserPersonalSettings(Enum):

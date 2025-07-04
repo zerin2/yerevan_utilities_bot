@@ -1,15 +1,11 @@
-import asyncio
 import copy
 import uuid
 from dataclasses import dataclass
 from enum import Enum
 
-from enums.city_enums import CityName
-from exceptions import EmptyKeyError, StatusError
 from loguru import logger
 
 import workers.config as conf
-from bot.manager.composite_manager import CompositeManager
 from db.core import async_session
 from settings import ACCOUNT_TYPE
 from workers.redis_task import RedisTask
@@ -131,18 +127,18 @@ class ParserTaskBuilder(DataStatus, RedisTask):
                     )
 
 
-async def main():
-    from src.enums.scene_enums import UtilityModelName
-    a = ParserTaskBuilder(
-        tg_id='259564426',  # 259564426 | 93064880
-        account='0390315',  # 0390315 | 12321312
-        utility=UtilityModelName.ELECTRICITY.value,
-        account_mode='one',  # all | one
-        city=CityName.YEREVAN.value,
-    )
-    await a.create_task_to_parser('high')
-    # for _ in range(5):
-    #     await a.create_task_to_parser('high')
-
-
-asyncio.run(main())
+# async def main():
+#     from src.enums.scene_enums import UtilityModelName
+#     a = ParserTaskBuilder(
+#         tg_id='259564426',  # 259564426 | 93064880
+#         account='0390315',  # 0390315 | 12321312
+#         utility=UtilityModelName.ELECTRICITY.value,
+#         account_mode='one',  # all | one
+#         city=CityName.YEREVAN.value,
+#     )
+#     await a.create_task_to_parser('high')
+#     # for _ in range(5):
+#     #     await a.create_task_to_parser('high')
+#
+#
+# asyncio.run(main())

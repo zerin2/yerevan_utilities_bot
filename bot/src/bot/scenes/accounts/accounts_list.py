@@ -33,7 +33,7 @@ class ListUtilitiesAccountsScene(
             )
 
     @on.callback_query(
-        F.data.in_([button[1] for button in EDITOR_ACCOUNT_BUTTONS])
+        F.data.in_([button[1] for button in EDITOR_ACCOUNT_BUTTONS]),
     )
     async def handle_account_selection(self, callback: CallbackQuery) -> None:
         await callback.answer()

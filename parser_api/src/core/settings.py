@@ -13,7 +13,7 @@ LOGS_PATH.parent.mkdir(parents=True, exist_ok=True)
 class Settings(BaseSettings):
     """Конфигурация приложения."""
 
-    test_redis_host: str
+    redis_test_host: str
     redis_host: str
     redis_port: str
     redis_parser_db: int

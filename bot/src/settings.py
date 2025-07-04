@@ -14,31 +14,43 @@ BASEDIR_OUT = Path(__file__).resolve().parents[2]
 BASEDIR_PROJECT = Path(__file__).resolve().parents[1]
 ENV_FILE_PATH = BASEDIR_OUT / 'infra' / '.env'
 
+LOGS_PATH = BASEDIR_PROJECT / 'logs'
+LOGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+BOT_LOG_PATH = LOGS_PATH / 'bot/bot_logs.log'
+PROVIDERS_LOG_PATH = LOGS_PATH / 'providers/providers_logs.log'
+WORKER_LOG_PATH = LOGS_PATH / 'providers/worker_logs.log'
+
 
 class Settings(BaseSettings):
     """Конфигурация приложения."""
 
-    test_telegram_token: str
-    deploy_telegram_token: str
-
+    debug: bool
     db_user: str
     db_password: str
     db_name: str
     db_host: str
     db_port: str
 
-    test_redis_host: str
+    redis_test_host: str
     redis_host: str
     redis_port: str
+    redis_parser_db: int
 
-    debug: bool
+    telegram_test_token: str
+    telegram_deploy_token: str
+    telegram_admin_login: str
+    telegram_admin_password: str
+
+    api_parser_token: str
+    api_url: str
+    api_test_url: str
 
     @property
     def telegram_token(self) -> str:
-        """Формирование телеграм токена."""
+        """Получение телеграм токена."""
         if self.debug:
-            return self.test_telegram_token
-        return self.deploy_telegram_token
+            return self.telegram_test_token
+        return self.telegram_deploy_token
 
     @property
     def database_url(self) -> str:
@@ -50,11 +62,34 @@ class Settings(BaseSettings):
         )
 
     @property
+    def get_redis_host(self) -> str:
+        if self.debug:
+            return self.redis_test_host
+        return self.redis_host
+
+    @property
     def redis_url(self) -> str:
         """Сформированная строка подключения к Redis."""
         if self.debug:
-            return f'redis://{self.test_redis_host}:{self.redis_port}/0'
-        return f'redis://{self.redis_host}:{self.redis_port}/0'
+            return (
+                f'redis://'
+                f'{self.redis_test_host}'
+                f':{self.redis_port}'
+                f'/{self.redis_parser_db}'
+            )
+        return (
+            f'redis://'
+            f'{self.redis_host}'
+            f':{self.redis_port}'
+            f'/{self.redis_parser_db}'
+        )
+
+    @property
+    def get_api_url(self) -> str:
+        """Получение url для подключения к API."""
+        if self.debug:
+            return self.api_test_url
+        return self.api_url
 
     class Config:
         """Внутренние настройки класса Settings."""

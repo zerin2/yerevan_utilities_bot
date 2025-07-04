@@ -106,7 +106,7 @@ class BotSender:
 
 # async def main():
 #     a = BotSender(tg_id=259564426, message='куку')
-#     for i in range(50):
+#     for i in range(5):
 #         await a.send_message()
 #
 #

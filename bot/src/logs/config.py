@@ -4,7 +4,11 @@ from typing import Callable
 
 from loguru import logger
 
-from settings import settings
+from settings import (
+    BOT_LOG_PATH,
+    PROVIDERS_LOG_PATH,
+    WORKER_LOG_PATH,
+)
 
 
 class InterceptHandler(logging.Handler):
@@ -19,7 +23,9 @@ class InterceptHandler(logging.Handler):
         except ValueError:
             level = record.levelno
         frame, depth = inspect.currentframe(), 0
-        while frame and (depth == 0 or frame.f_code.co_filename == logging.__file__):
+        while frame and (
+                depth == 0 or frame.f_code.co_filename == logging.__file__
+        ):
             frame = frame.f_back
             depth += 1
         (
@@ -37,10 +43,6 @@ def filter_category(name_category: str) -> Callable:
     """Фильтр для категории раздела и виду ошибки."""
     return lambda record: record['extra'].get('category') == name_category
 
-
-BOT_LOG_PATH: str = settings.BASEDIR_PROJECT / 'src/logs/bot/bot_logs.log'
-PROVIDERS_LOG_PATH: str = settings.BASEDIR_PROJECT / 'src/logs/providers/providers_logs.log'
-WORKER_LOG_PATH: str = settings.BASEDIR_PROJECT / 'src/logs/providers/worker_logs.log'
 
 bot_logger = logger.bind(category='bot')
 bot_logger.add(
