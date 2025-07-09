@@ -39,7 +39,7 @@ class UtilityRUS(str, Enum):
     OVIO_RUS = ' OVIO | Rostelecom '
 
 
-class UtilityNameIcon(Enum):
+class UtilityLabel(Enum):
     ELECTRICITY = UtilityRUS.ELECTRICITY_RUS.value + UtilityIcon.LIGHTNING.value
     GAS = UtilityRUS.GAS_RUS.value + UtilityIcon.FIRE.value
     GAS_SERVICE = UtilityRUS.GAS_SERVICE_RUS.value + UtilityIcon.TOOLS.value

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from bot.enums.utility_enums import UtilityName, UtilityNameIcon
+from bot.enums.utility_enums import UtilityLabel, UtilityName
 
 
 class SceneName(Enum):
@@ -47,37 +47,23 @@ class SceneName(Enum):
         return f'get_{self.value}'
 
     @staticmethod
-    def to_utility_description(current_state: str) -> str:
-        """Возвращает описание услуги (Utility) на основе текущего состояния FSM.
-        Сопоставляет переданное состояние FSM с соответствующей услугой,
-        используя предопределенный словарь сопоставлений.
-        Пример:
-            Если `current_state` равно 'add_electricity_scene',
-            метод вернет `Utility.ELECTRICITY`.
-        Параметры:
-            current_state (str): Текущее состояние FSM пользователя,
-            переданное как строка.
-        Возвращает:
-        str: Описание услуги (например, "Электричество"),
-             если найдено соответствие. Если состояние не сопоставлено,
-             возвращает None.
-
-        """
+    def scene_editor_to_utility_label(value: str) -> str:
+        """Возвращает по editor-сцене label услуги (иконка + русское название)."""
         mapping = {
-            SceneName.ELECTRICITY.editor: UtilityNameIcon.ELECTRICITY,
-            SceneName.GAS.editor: UtilityNameIcon.GAS,
-            SceneName.GAS_SERVICE.editor: UtilityNameIcon.GAS_SERVICE,
-            SceneName.WATER.editor: UtilityNameIcon.WATER,
-            SceneName.VIVA_MTS.editor: UtilityNameIcon.VIVA_MTS,
-            SceneName.TEAM_TELECOM.editor: UtilityNameIcon.TEAM_TELECOM,
-            SceneName.U_COM.editor: UtilityNameIcon.U_COM,
-            SceneName.OVIO.editor: UtilityNameIcon.OVIO,
+            SceneName.ELECTRICITY.editor: UtilityLabel.ELECTRICITY,
+            SceneName.GAS.editor: UtilityLabel.GAS,
+            SceneName.GAS_SERVICE.editor: UtilityLabel.GAS_SERVICE,
+            SceneName.WATER.editor: UtilityLabel.WATER,
+            SceneName.VIVA_MTS.editor: UtilityLabel.VIVA_MTS,
+            SceneName.TEAM_TELECOM.editor: UtilityLabel.TEAM_TELECOM,
+            SceneName.U_COM.editor: UtilityLabel.U_COM,
+            SceneName.OVIO.editor: UtilityLabel.OVIO,
         }
-        return mapping.get(current_state)
+        return mapping.get(value)
 
     @staticmethod
-    def to_save(current_state: str) -> str:
-        """Сопоставление состояния со SceneName."""
+    def editor_to_scene_enum(value: str) -> str:
+        """Возвращает Enum-сцену (SceneName) по editor-сцене."""
         mapping = {
             SceneName.ELECTRICITY.editor: SceneName.ELECTRICITY,
             SceneName.GAS.editor: SceneName.GAS,
@@ -88,11 +74,11 @@ class SceneName(Enum):
             SceneName.U_COM.editor: SceneName.U_COM,
             SceneName.OVIO.editor: SceneName.OVIO,
         }
-        return mapping.get(current_state)
+        return mapping.get(value)
 
     @staticmethod
-    def to_utility_name(current_state: str) -> str:
-        """Сопоставление состояния с UtilityModelName."""
+    def editor_to_utility_name(value: str) -> str:
+        """Возвращает техническое имя услуги (UtilityName) по editor-сцене."""
         mapping = {
             SceneName.ELECTRICITY.editor: UtilityName.ELECTRICITY.value,
             SceneName.GAS.editor: UtilityName.GAS.value,
@@ -103,4 +89,4 @@ class SceneName(Enum):
             SceneName.U_COM.editor: UtilityName.U_COM.value,
             SceneName.OVIO.editor: UtilityName.OVIO.value,
         }
-        return mapping.get(current_state)
+        return mapping.get(value)

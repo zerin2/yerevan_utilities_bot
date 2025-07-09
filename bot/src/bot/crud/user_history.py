@@ -25,7 +25,7 @@ class CRUDUserHistory(CRUDBase):
         user_obj: UserProfile = await user_crud.get_or_create_user(
             session, user_id,
         )
-        return self.create(
+        return await self.create(
             session,
             {
                 'user_id': user_obj.id,

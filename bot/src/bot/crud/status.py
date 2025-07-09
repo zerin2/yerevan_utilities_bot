@@ -22,7 +22,7 @@ class CRUDStatus(CRUDBase):
             status_name: Status,
     ) -> Optional[StatusType]:
         """Возвращает статус по имени."""
-        return self.get_by_field(session, 'name', status_name)
+        return await self.get_by_field(session, 'name', status_name)
 
     async def create_status(
             self,

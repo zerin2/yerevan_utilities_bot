@@ -1,5 +1,5 @@
 from .models import (
-    AccountsDetail as AccountsDetail,
+    City as City,
 )
 from .models import (
     EndNoticeInterval as EndNoticeInterval,
@@ -17,11 +17,14 @@ from .models import (
     StatusType as StatusType,
 )
 from .models import (
-    UsersHistory as UsersHistory,
+    UserAccount as UserAccount,
 )
 from .models import (
-    UsersProfile as UsersProfile,
+    UserHistory as UserHistory,
 )
 from .models import (
-    UtilitiesType as UtilitiesType,
+    UserProfile as UserProfile,
+)
+from .models import (
+    UtilityType as UtilityType,
 )

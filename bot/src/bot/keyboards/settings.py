@@ -3,7 +3,11 @@ from aiogram.types import (
     InlineKeyboardMarkup,
 )
 
-from bot.enums.notice_enums import NoticeInterval, NoticeState, NoticeType
+from bot.enums.notice_enums import (
+    NoticeInterval,
+    NoticeStateEnum,
+    NoticeTypeEnum,
+)
 from bot.enums.scene_enums import SceneName
 from bot.keyboards.enums import KeyboardText
 
@@ -28,10 +32,10 @@ def display_notice_state() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=NoticeState.to_human(state.value),
+                    text=NoticeStateEnum.to_human(state.value),
                     callback_data=state.value,
                 ),
-            ] for state in NoticeState
+            ] for state in NoticeStateEnum
         ],
     )
 
@@ -45,10 +49,10 @@ def display_notice_type() -> InlineKeyboardMarkup:
 
     """
     buttons = []
-    for interval in NoticeType:
-        text = NoticeType.to_human(interval.value)  # noqa
+    for interval in NoticeTypeEnum:
+        text = NoticeTypeEnum.to_human(interval.value)  # noqa
         value = interval.value  # noqa
-        if value == NoticeType.PERIOD.value:
+        if value == NoticeTypeEnum.PERIOD.value:
             text += ' укажите необходимый'
         buttons.append(InlineKeyboardButton(
             text=text,

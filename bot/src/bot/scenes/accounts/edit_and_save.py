@@ -22,35 +22,50 @@ from db.core import async_session
 
 
 class EditAccountScene(Scene):
-    """ """
+    """Сцена редактирования аккаунта пользователя.
+
+    Позволяет выбрать, какое поле аккаунта редактировать (код лицевого счёта или телефон)
+    в зависимости от типа услуги, а также валидирует введённое пользователем значение.
+    """
 
     def __init_subclass__(cls, state: str = None, **kwargs: Any) -> None:
+        """Инициализация подкласса сцены с передачей состояния (state)."""
         super().__init_subclass__(state=state, **kwargs)
 
     @staticmethod
     def get_utility_type(utility_name: str) -> str:
-        """Сопоставляет услугу с типом поля услуги из settings(code | phone)."""
-        for key, value in setting.ACCOUNT_TYPE.items():
-            if key == utility_name:
-                return value
-        return None
+        """Возвращает тип поля для услуги (например, 'code' или 'phone')
+        по её техническому имени.
+        """
+        return setting.ACCOUNT_TYPE.get(utility_name)
 
     @on.callback_query.enter()
     async def handle_edit(
-            self, callback:
-            CallbackQuery,
+            self,
+            callback: CallbackQuery,
             state: FSMContext,
     ) -> None:
-        """ """
+        """
+        Обрабатывает вход в сцену редактирования аккаунта через callback.
+
+        В зависимости от типа услуги показывает соответствующее сообщение:
+        - Запрос на ввод лицевого счёта (если услуга требует code)
+        - Запрос на ввод телефона (если услуга требует phone)
+
+        Параметры:
+            callback (CallbackQuery): Входящий callback от Telegram.
+            state (FSMContext): Контекст текущего состояния FSM.
+        """
         current_state = await state.get_state()
-        utility_model_name = SceneName.to_utility_name(current_state)
-        utility: Enum = SceneName.to_utility_description(current_state)
-        if self.get_utility_type(utility_model_name) == 'code':
+        utility_model_name = SceneName.editor_to_utility_name(current_state)
+        utility: Enum = SceneName.scene_editor_to_utility_label(current_state)
+        utility_type = self.get_utility_type(utility_model_name)
+        if utility_type == 'code':
             await callback.message.answer(
                 BotMessage.EDIT_ACCOUNT.value.format(utility=utility.value),
                 parse_mode='Markdown',
             )
-        elif self.get_utility_type(utility_model_name) == 'phone':
+        elif utility_type == 'phone':
             await callback.message.answer(
                 BotMessage.EDIT_PHONE.value.format(utility=utility.value),
                 parse_mode='Markdown',
@@ -60,7 +75,17 @@ class EditAccountScene(Scene):
     async def handle_check_account(
             self, message: Message, state: FSMContext,
     ) -> None:
-        """ """
+        """Валидирует введённый пользователем номер аккаунта или телефон.
+
+        Если валидация не проходит — сообщает об ошибке
+        и предлагает повторить ввод.
+        Если всё верно — сообщает об успешном изменении
+        и переводит пользователя на следующий этап сцены.
+
+        Параметры:
+            message (Message): Входящее сообщение пользователя.
+            state (FSMContext): Контекст текущего состояния FSM.
+        """
         try:
             account_input = AccountInput(value=message.text)
             cleaned_value = account_input.value
@@ -77,18 +102,24 @@ class EditAccountScene(Scene):
                 reply_markup=main_kb(),
             )
             current_state = await state.get_state()
-            utility = SceneName.to_save(current_state)
-            await self.wizard.goto(utility.save)
+            scene_enum: SceneName = SceneName.editor_to_scene_enum(current_state)
+            next_state = scene_enum.save
+            await self.wizard.goto(next_state)
 
 
 class SaveAccountScene(Scene):
-    """ """
+    """Сцена сохранения аккаунта пользователя.
+    Обрабатывает ввод данных для сохранения лицевого счёта в базу данных,
+    меняет статус пользователя после добавления первого аккаунта.
+    """
 
     def __init_subclass__(cls, state: str = None, **kwargs: Any) -> None:
+        """Инициализация подкласса сцены с передачей состояния (state)."""
         super().__init_subclass__(state=state, **kwargs)
 
     @staticmethod
     def mapping_account(current_state):
+        """Соотносит сцену с техническим именем услуги (UtilityName)."""
         mapping = {
             SceneName.ELECTRICITY.save: UtilityName.ELECTRICITY.value,
             SceneName.GAS.save: UtilityName.GAS.value,
@@ -99,6 +130,16 @@ class SaveAccountScene(Scene):
 
     @on.message.enter()
     async def handle_enter(self, message: Message, state: FSMContext) -> None:
+        """Обрабатывает вход пользователя в сцену сохранения аккаунта.
+
+        Сохраняет новый аккаунт пользователя в базу данных,
+        меняет статус пользователя после добавления первого аккаунта,
+        отправляет сообщение с предложением выбрать следующее действие.
+
+        Параметры:
+            message (Message): Входящее сообщение пользователя.
+            state (FSMContext): Контекст текущего состояния FSM.
+        """
         async with async_session() as session:
             user_id = str(message.from_user.id)
             user_account = message.text.strip()
@@ -118,6 +159,14 @@ class SaveAccountScene(Scene):
 
     @on.callback_query(F.data.in_(CALLBACK_DATA_ACCOUNT_KEYBOARD))
     async def handle_add_account(self, callback: CallbackQuery) -> None:
+        """Обрабатывает нажатие на inline-кнопку добавления нового аккаунта в сцене.
+
+        Очищает reply_markup, завершает текущий callback
+        и переводит пользователя на следующий этап сцены.
+
+        Параметры:
+            callback (CallbackQuery): Входящий callback от Telegram.
+        """
         await callback.message.edit_reply_markup(reply_markup=None)
         await callback.answer()
         await self.wizard.goto(callback.data)

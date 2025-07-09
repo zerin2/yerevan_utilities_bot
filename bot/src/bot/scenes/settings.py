@@ -6,8 +6,8 @@ from bot.crud.user import user_crud
 from bot.enums.notice_enums import (
     NoticeFlag,
     NoticeInterval,
-    NoticeState,
-    NoticeType,
+    NoticeStateEnum,
+    NoticeTypeEnum,
 )
 from bot.enums.profile_enums import BotMessage
 from bot.enums.scene_enums import SceneName
@@ -46,13 +46,13 @@ class SettingScene(Scene, state=SceneName.SETTING.display):
             notice_state = notice_info.get(
                 'notice_state', BotMessage.UNKNOWN_NOTICE_STATE.value,
             )
-            if notice_type == NoticeType.PERIOD.value:
+            if notice_type == NoticeTypeEnum.PERIOD.value:
                 start_hour = notice_info.get('start_notice_interval', 'error')
                 end_hour = notice_info.get('end_notice_interval', 'error')
                 await message.answer(
                     BotMessage.PERSONAL_SETTING_NOTICE_PERIOD.value.format(
-                        notice_state=NoticeState.to_human(notice_state),
-                        notice_type=NoticeType.to_human(notice_type),
+                        notice_state=NoticeStateEnum.to_human(notice_state),
+                        notice_type=NoticeTypeEnum.to_human(notice_type),
                         start_period=NoticeInterval.to_human(start_hour),
                         end_period=NoticeInterval.to_human(end_hour),
                     ),
@@ -62,8 +62,8 @@ class SettingScene(Scene, state=SceneName.SETTING.display):
             else:
                 await message.answer(
                     BotMessage.PERSONAL_SETTING_NOTICE_ALL.value.format(
-                        notice_state=NoticeState.to_human(notice_state),
-                        notice_type=NoticeType.to_human(notice_type),
+                        notice_state=NoticeStateEnum.to_human(notice_state),
+                        notice_type=NoticeTypeEnum.to_human(notice_type),
                     ),
                     parse_mode='Markdown',
                     reply_markup=change_setting_interval_notice(),
@@ -152,7 +152,7 @@ class EditNoticeIntervalScene(Scene, state=SceneName.NOTICE_INTERVAL.editor):
         """
         await callback.message.delete()
         new_notice_type = callback.data
-        if new_notice_type == NoticeType.PERIOD.value:
+        if new_notice_type == NoticeTypeEnum.PERIOD.value:
             await callback.answer()
             await self.wizard.goto(new_notice_type)
         else:
@@ -178,7 +178,7 @@ class EditNoticeIntervalScene(Scene, state=SceneName.NOTICE_INTERVAL.editor):
                 )
 
 
-class EditPeriodNoticeInterval(Scene, state=NoticeType.PERIOD.value):
+class EditPeriodNoticeInterval(Scene, state=NoticeTypeEnum.PERIOD.value):
     """
 
     """
@@ -211,7 +211,7 @@ class EditPeriodNoticeInterval(Scene, state=NoticeType.PERIOD.value):
         try:
             async with async_session() as session:
                 await user_crud.update_notice_type(
-                    session, user_id, NoticeType.PERIOD.value,
+                    session, user_id, NoticeTypeEnum.PERIOD.value,
                 )
                 await user_crud.update_notice_interval(
                     session, user_id, user_data, NoticeFlag.START.value,

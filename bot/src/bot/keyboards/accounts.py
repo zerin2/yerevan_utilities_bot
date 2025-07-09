@@ -7,9 +7,10 @@ from aiogram.types import (
 
 from bot.crud.account import user_account_crud
 from bot.enums.scene_enums import SceneName
-from bot.enums.utility_enums import UtilityNameIcon
+from bot.enums.utility_enums import UtilityLabel
 from bot.keyboards.enums import KeyboardIcon, KeyboardText
 from db.core import async_session
+from db.models import UserAccount
 
 CALLBACK_DATA_ACCOUNT_KEYBOARD = [
     SceneName.DATA.check,
@@ -19,10 +20,10 @@ CALLBACK_DATA_ACCOUNT_KEYBOARD = [
 ]
 
 EDITOR_ACCOUNT_BUTTONS = [
-    (UtilityNameIcon.ELECTRICITY.value, SceneName.ELECTRICITY.editor),
-    (UtilityNameIcon.GAS.value, SceneName.GAS.editor),
-    (UtilityNameIcon.GAS_SERVICE.value, SceneName.GAS_SERVICE.editor),
-    (UtilityNameIcon.WATER.value, SceneName.WATER.editor),
+    (UtilityLabel.ELECTRICITY.value, SceneName.ELECTRICITY.editor),
+    (UtilityLabel.GAS.value, SceneName.GAS.editor),
+    (UtilityLabel.GAS_SERVICE.value, SceneName.GAS_SERVICE.editor),
+    (UtilityLabel.WATER.value, SceneName.WATER.editor),
     # (Utility.VIVA_MTS.value, SceneName.VIVA_MTS.editor),
     # (Utility.TEAM_TELECOM.value, SceneName.TEAM_TELECOM.editor),
     # (Utility.U_COM.value, SceneName.U_COM.editor),
@@ -41,21 +42,6 @@ class KeyboardStatusAccount:
 
     user_id: str
 
-    async def get_account_values(self) -> dict:
-        """Получает значения всех счетов пользователя из базы данных.
-
-        Returns:
-            dict: Словарь, где ключи - типы счетов (напр. "electricity"),
-            а значения - текущие данные счета. Возвращает пустой словарь, если данных нет.
-
-        """
-        async with async_session() as session:
-            account_values = await user_account_crud.get_all_accounts(
-                session,
-                str(self.user_id),
-            )
-            return account_values or {}
-
     async def get_status_button(self, button: str) -> bool:
         """Определяет статус кнопки для заданного типа счета.
         SceneName.to_utility_name(button) - получаем имя модели по названию callback_data.
@@ -71,9 +57,15 @@ class KeyboardStatusAccount:
         """
         if button is None:
             button = ''
-
-        account_values = await self.get_account_values()
-        button_name = SceneName.to_utility_name(button)
+        async with async_session() as session:
+            user_accounts: UserAccount = await user_account_crud.get_all_accounts(
+                session,
+                str(self.user_id),
+            )
+        # todo продумать, как действовать при пустом значении аккаунтов:
+        #  либо дефолты создавать DEFAULT_UTILITIES, либо продумать форм
+        #  ??формировать всегда дефолтное количество и дополнять, если что другими??
+        button_name = SceneName.editor_to_utility_name(button)
         for account_name, account_value in account_values.items():
             if button_name == account_name:
                 if account_value is None:

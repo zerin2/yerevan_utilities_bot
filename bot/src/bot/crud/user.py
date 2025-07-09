@@ -14,9 +14,10 @@ from bot.crud.notice import (
 )
 from bot.crud.status import status_crud
 from bot.enums.notice_enums import NoticeFlag
-from bot.enums.setting_enums import Status
-from db.models.models import UserProfile
+from bot.enums.setting_enums import Status, UserPersonalSettings
+from db.models.models import StatusType, UserProfile
 from logs.config import bot_logger
+from settings import DEFAULT_PERSONAL_SETTINGS
 
 
 class CRUDUser(CRUDBase):
@@ -52,7 +53,22 @@ class CRUDUser(CRUDBase):
             telegram_id: str,
     ) -> UserProfile:
         """Создание нового user с telegram_id."""
-        return await self.create(session, {'telegram_id': str(telegram_id)})
+        notice_type = await notice_type_crud.get_or_create_notice_type(
+            session,
+            DEFAULT_PERSONAL_SETTINGS.get(
+                UserPersonalSettings.NOTICE_TYPE.value,
+            ),
+        )
+        return await self.create(session, {
+            'telegram_id': str(telegram_id),
+            'is_delivery_blocked': DEFAULT_PERSONAL_SETTINGS.get(
+                UserPersonalSettings.IS_DELIVERY_BLOCKED.value,
+            ),
+            'notice_state': DEFAULT_PERSONAL_SETTINGS.get(
+                UserPersonalSettings.NOTICE_STATE.value,
+            ),
+            'notice_type_id': notice_type.id,
+        })
 
     async def get_or_create_user(
             self,
@@ -62,7 +78,7 @@ class CRUDUser(CRUDBase):
         """Получение или создание нового user по telegram_id."""
         user = await self.get_user_by_tg_id(session, str(telegram_id))
         if not user:
-            return self.create_user(session, str(telegram_id))
+            return await self.create_user(session, str(telegram_id))
         return user
 
     async def update_status(
@@ -116,6 +132,20 @@ class CRUDUser(CRUDBase):
         user.notice_state = (str(notice_state))
         await session.flush()
         return user
+
+    async def get_user_status(
+            self,
+            session: AsyncSession,
+            telegram_id: str,
+    ) -> StatusType:
+        """Получает статус пользователя."""
+        user: UserProfile = await self.get_user_by_tg_id(session, telegram_id)
+        if not user:
+            raise ValueError('Пользователь не найден')
+        user_status: StatusType = await status_crud.get_status_by_id(
+            session, user.status_id,
+        )
+        return user_status
 
     async def change_user_status_after_first_add_account(
             self,

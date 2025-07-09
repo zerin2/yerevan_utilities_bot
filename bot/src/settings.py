@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
-from bot.enums.notice_enums import NoticeState, NoticeType
+from bot.enums.notice_enums import NoticeStateEnum, NoticeTypeEnum
 from bot.enums.scene_enums import UtilityName
 from bot.enums.setting_enums import (
     Status,
@@ -110,10 +110,18 @@ ACCOUNT_TYPE = {
     UtilityName.OVIO: UtilityType.PHONE.value,
 }
 
+DEFAULT_UTILITIES = [
+    UtilityName.ELECTRICITY.value,
+    UtilityName.GAS.value,
+    UtilityName.GAS_SERVICE.value,
+    UtilityName.WATER.value,
+]
+
 DEFAULT_PERSONAL_SETTINGS = {
-    UserPersonalSettings.ACCOUNT_STATUS.value: Status.NEW.value,
-    UserPersonalSettings.NOTICE_STATE.value: NoticeState.ON.value,
-    UserPersonalSettings.NOTICE_TYPE.value: NoticeType.ANYTIME.value,
+    UserPersonalSettings.IS_DELIVERY_BLOCKED.value: False,
+    UserPersonalSettings.STATUS.value: Status.NEW.value,
+    UserPersonalSettings.NOTICE_STATE.value: NoticeStateEnum.ON.value,
+    UserPersonalSettings.NOTICE_TYPE.value: NoticeTypeEnum.ANYTIME.value,
 }
 
 settings = Settings()

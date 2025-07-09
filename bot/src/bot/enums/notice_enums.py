@@ -1,28 +1,28 @@
 from enum import Enum
 
 
-class NoticeState(str, Enum):
+class NoticeStateEnum(str, Enum):
     ON = 'on'
     OFF = 'off'
 
     @staticmethod
     def to_human(state: str) -> str:
         mapping = {
-            NoticeState.ON.value: 'Включены',
-            NoticeState.OFF.value: 'Выключены',
+            NoticeStateEnum.ON.value: 'Включены',
+            NoticeStateEnum.OFF.value: 'Выключены',
         }
         return mapping.get(state, 'Ошибочное состояние')
 
 
-class NoticeType(str, Enum):
+class NoticeTypeEnum(str, Enum):
     ANYTIME = 'anytime'
     PERIOD = 'period'
 
     @staticmethod
     def to_human(notice_type: str) -> str:
         mapping = {
-            NoticeType.ANYTIME.value: 'В любое время',
-            NoticeType.PERIOD.value: 'В период: ',
+            NoticeTypeEnum.ANYTIME.value: 'В любое время',
+            NoticeTypeEnum.PERIOD.value: 'В период: ',
         }
         return mapping.get(notice_type, 'Ошибочный период')
 

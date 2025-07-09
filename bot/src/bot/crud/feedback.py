@@ -16,7 +16,7 @@ class CRUDFeedback(CRUDBase):
     ) -> Feedback:
         """Сохраняет отзыв пользователя."""
         user: UserProfile = user_crud.get_user_by_tg_id(session, telegram_id)
-        return self.create(
+        return await self.create(
             session,
             dict(
                 user_id=str(user.id),

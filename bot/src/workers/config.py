@@ -1,6 +1,5 @@
 
 
-
 REDIS_BACKUP_QUEUE_NAME = 'backup_tasks'
 REDIS_RESPONSE_BODY = {
     'tg_id': '',

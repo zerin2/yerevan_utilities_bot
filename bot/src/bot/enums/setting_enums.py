@@ -11,9 +11,10 @@ class Status(Enum):
 
 
 class UserPersonalSettings(Enum):
-    ACCOUNT_STATUS = 'account_status'
+    IS_DELIVERY_BLOCKED= 'is_delivery_blocked'
+    STATUS = 'status_id'
     NOTICE_STATE = 'notice_state'
-    NOTICE_TYPE = 'notice_type'
+    NOTICE_TYPE = 'notice_type_id'
 
 
 class FieldLength(int, Enum):

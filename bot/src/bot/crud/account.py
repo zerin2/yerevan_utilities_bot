@@ -48,7 +48,7 @@ class CRUDUserAccount(CRUDBase):
         city_obj: City = await city_crud.get_or_create_city(
             session, city_name,
         )
-        return self.create(
+        return await self.create(
             session,
             dict(
                 user_id=user_obj.id,
@@ -117,7 +117,10 @@ class CRUDUserAccount(CRUDBase):
         )
         if not user:
             return []
-        return user.user_account
+        result = await session.execute(
+            select(UserAccount).where(UserAccount.user_id == user.id),
+        )
+        return result.scalars().all()
 
     async def delete_account(
             self,

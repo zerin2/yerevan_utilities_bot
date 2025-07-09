@@ -53,15 +53,3 @@ class AccountData404(ParserError):
 
 class ValidationError(CustomBaseException):
     pass
-
-
-class JsonError(ValidationError):
-    pass
-
-
-class EmptyKeyError(ValidationError):
-    pass
-
-
-class StatusError(CustomBaseException):
-    pass

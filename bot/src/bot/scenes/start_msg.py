@@ -2,8 +2,6 @@ from aiogram import F
 from aiogram.fsm.scene import Scene, on
 from aiogram.types import CallbackQuery, Message
 
-import settings as setting
-from bot.crud.status import status_crud
 from bot.crud.user import user_crud
 from bot.enums.profile_enums import BotMessage
 from bot.enums.scene_enums import SceneName
@@ -11,7 +9,8 @@ from bot.enums.setting_enums import Status, UserPersonalSettings
 from bot.keyboards.accounts import CALLBACK_DATA_ACCOUNT_KEYBOARD, add_accounts
 from bot.keyboards.main import display_debt, main_kb, mini_main_kb
 from db.core import async_session
-from db.models.models import UserProfile
+from db.models.models import StatusType, UserProfile
+from settings import DEFAULT_PERSONAL_SETTINGS
 
 
 class StartMsgScene(Scene, state=SceneName.START_MSG.value):
@@ -28,10 +27,10 @@ class StartMsgScene(Scene, state=SceneName.START_MSG.value):
                 or 'пользователь'
         )
         async with async_session() as session:
-            user_id = message.from_user.id
+            user_telegram_id = message.from_user.id
             user_obj: UserProfile = await user_crud.get_or_create_user(
                 session,
-                str(user_id),
+                str(user_telegram_id),
             )
             await session.flush()
 
@@ -39,30 +38,30 @@ class StartMsgScene(Scene, state=SceneName.START_MSG.value):
             if not user_status_id:
                 await user_crud.update_status(
                     session,
-                    user_id,
-                    setting.DEFAULT_PERSONAL_SETTINGS[
-                        UserPersonalSettings.ACCOUNT_STATUS.value
-                    ],
-                )
-                await user_crud.update_notice_type(
-                    session,
-                    user_id,
-                    setting.DEFAULT_PERSONAL_SETTINGS[
-                        UserPersonalSettings.NOTICE_TYPE.value
-                    ],
+                    user_telegram_id,
+                    DEFAULT_PERSONAL_SETTINGS.get(
+                        UserPersonalSettings.STATUS.value,
+                    ),
                 )
                 await user_crud.update_notice_state(
                     session,
-                    user_id,
-                    setting.DEFAULT_PERSONAL_SETTINGS[
-                        UserPersonalSettings.NOTICE_STATE.value
-                    ],
+                    user_telegram_id,
+                    DEFAULT_PERSONAL_SETTINGS.get(
+                        UserPersonalSettings.NOTICE_STATE.value,
+                    ),
+                )
+                await user_crud.update_notice_type(
+                    session,
+                    user_telegram_id,
+                    DEFAULT_PERSONAL_SETTINGS.get(
+                        UserPersonalSettings.NOTICE_TYPE.value,
+                    ),
                 )
                 await session.commit()
 
-            user_status = await status_crud.get_status_by_id(
+            user_status: StatusType = await user_crud.get_user_status(
                 session,
-                user_status_id,
+                str(user_telegram_id),
             )
             if user_status.name == Status.NEW.value:
                 await message.answer(

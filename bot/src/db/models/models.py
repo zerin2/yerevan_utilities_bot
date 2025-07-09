@@ -39,9 +39,6 @@ class NoticeType(BaseModel, NameMixin):
     user_profile: Mapped['UserProfile'] = relationship(
         back_populates='notice_type',
     )
-    user_account: Mapped['UserAccount'] = relationship(
-        back_populates='notice_type',
-    )
 
 
 class StartNoticeInterval(BaseModel, NameMixin):
@@ -225,9 +222,6 @@ class UserAccount(BaseModel, DateTimeMixin):
     utility_type: Mapped['UtilityType'] = relationship(
         back_populates='user_account',
     )
-    notice_type: Mapped['NoticeType'] = relationship(
-        back_populates='user_account',
-    )
     status_type: Mapped['StatusType'] = relationship(
         back_populates='user_account',
     )
@@ -238,6 +232,8 @@ class UserAccount(BaseModel, DateTimeMixin):
 
 class UserHistory(BaseModel, DateTimeMixin):
     """История запросов юзеров."""
+
+    __tablename__ = 'user_history'
 
     user_id: Mapped[int] = mapped_column(
         Integer,
@@ -269,6 +265,8 @@ class UserHistory(BaseModel, DateTimeMixin):
 class Feedback(BaseModel, DateTimeMixin):
     """Отзывы от пользователей, в том числе и ошибок."""
 
+    __tablename__ = 'feedback'
+
     user_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey('user_profile.id', ondelete='CASCADE'),
@@ -289,4 +287,4 @@ class Feedback(BaseModel, DateTimeMixin):
 
     user_profile: Mapped['UserProfile'] = relationship(
         back_populates='feedback',
-                                                       )
+    )
