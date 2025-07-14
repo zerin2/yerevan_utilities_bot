@@ -18,6 +18,7 @@ from db.models.models import (
     UserProfile,
     UtilityType,
 )
+from settings import DEFAULT_UTILITIES, DEFAULT_EMPTY_ACCOUNT_VALUE
 
 
 class CRUDUserAccount(CRUDBase):
@@ -63,6 +64,26 @@ class CRUDUserAccount(CRUDBase):
                 status_id=status_obj.id,
             ),
         )
+
+    async def create_default_accounts(
+            self,
+            session: AsyncSession,
+            user_id: int,
+            account: str = DEFAULT_EMPTY_ACCOUNT_VALUE,
+            default_utilities: list = DEFAULT_UTILITIES,
+    ) -> list[UserAccount]:
+        """Создает дефолтные расчетные счета пользователя,
+        параметры берутся из настроек проекта.
+        """
+        account_objects: list[UserAccount] = []
+        for utility_name in default_utilities:
+            account_objects.append(UserAccount(
+                user_id=user_id,
+                account=account,
+                utility_name=utility_name,
+            ))
+        session.add_all(account_objects)
+        return account_objects
 
     async def update_account(
             self,

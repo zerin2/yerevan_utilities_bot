@@ -51,5 +51,6 @@ class AccountData404(ParserError):
         super().__init__(message)
 
 
-class ValidationError(CustomBaseException):
-    pass
+class EmptyUserAccountList(CustomBaseException):
+    def __init__(self, message='Нет счетов у аккаунта'):
+        super().__init__(message)

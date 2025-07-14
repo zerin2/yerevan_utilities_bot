@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from bot.core.exceptions import EndNoticeInterval404, StartNoticeInterval404
 from bot.core.handle_errors import handle_db_errors
+from bot.crud.account import user_account_crud
 from bot.crud.base import CRUDBase
 from bot.crud.notice import (
     end_notice_interval_crud,
@@ -75,10 +76,22 @@ class CRUDUser(CRUDBase):
             session: AsyncSession,
             telegram_id: str,
     ) -> UserProfile:
-        """Получение или создание нового user по telegram_id."""
-        user = await self.get_user_by_tg_id(session, str(telegram_id))
+        """Получение или создание нового user по telegram_id.
+        Если нет user, то создаются дефолтные счета из константы DEFAULT_UTILITIES.
+        """
+        user_telegram_id = str(telegram_id)
+        user = await self.get_user_by_tg_id(session, user_telegram_id)
         if not user:
-            return await self.create_user(session, str(telegram_id))
+            user_obj: UserProfile = await self.create_user(
+                session,
+                user_telegram_id,
+            )
+            await session.flush()
+            await user_account_crud.create_default_accounts(
+                session,
+                user_obj.id,
+            )
+            return user_obj
         return user
 
     async def update_status(

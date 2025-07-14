@@ -1,13 +1,16 @@
 from aiogram import F
+from aiogram.enums import ParseMode
 from aiogram.fsm.scene import Scene, on
 from aiogram.types import CallbackQuery, Message
 
+from bot.core.exceptions import EmptyUserAccountList
 from bot.enums.profile_enums import BotMessage
 from bot.enums.scene_enums import SceneName
 from bot.keyboards.accounts import (
     EDITOR_ACCOUNT_BUTTONS,
     display_accounts_list,
 )
+from logs.config import bot_logger
 
 
 class ListUtilitiesAccountsScene(
@@ -19,18 +22,25 @@ class ListUtilitiesAccountsScene(
     @on.callback_query.enter()
     @on.message.enter()
     async def handle_list(self, event: Message | CallbackQuery) -> None:
-        user_id = event.from_user.id
-        if isinstance(event, CallbackQuery):
+        user_id = str(event.from_user.id)
+        try:
+            if isinstance(event, CallbackQuery):
+                await event.answer()
+                await event.message.answer(
+                    BotMessage.CHOOSE_ACCOUNTS_IN_LIST.value,
+                    reply_markup=await display_accounts_list(user_id),
+                )
+            else:
+                await event.answer(
+                    BotMessage.CHOOSE_ACCOUNTS_IN_LIST.value,
+                    reply_markup=await display_accounts_list(user_id),
+                )
+        except EmptyUserAccountList as e:
+            error_name = e.__class__.__name__
+            bot_logger.error(f'{error_name}, user_id={user_id}')
             await event.answer()
-            await event.message.answer(
-                BotMessage.CHOOSE_ACCOUNTS_IN_LIST.value,
-                reply_markup=await display_accounts_list(str(user_id)),
-            )
-        else:
-            await event.answer(
-                BotMessage.CHOOSE_ACCOUNTS_IN_LIST.value,
-                reply_markup=await display_accounts_list(str(user_id)),
-            )
+            await event.message.answer(f'Ошибка: "{error_name}"')
+            await event.message.answer(BotMessage.ERROR_LIST_ACCOUNT.value)
 
     @on.callback_query(
         F.data.in_([button[1] for button in EDITOR_ACCOUNT_BUTTONS]),

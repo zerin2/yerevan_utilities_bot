@@ -23,6 +23,6 @@ class KeyboardCMD(str, Enum):
     SETTINGS = 'settings'
 
 
-class KeyboardIcon(Enum):
+class KeyboardIcon(str, Enum):
     EMPTY = '⚪'
     FILLED = '✅'

@@ -5,6 +5,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
 )
 
+from bot.core.exceptions import EmptyUserAccountList
 from bot.crud.account import user_account_crud
 from bot.enums.scene_enums import SceneName
 from bot.enums.utility_enums import UtilityLabel
@@ -31,51 +32,8 @@ EDITOR_ACCOUNT_BUTTONS = [
 ]
 
 
-@dataclass
-class KeyboardStatusAccount:
-    """Класс для работы со статусами счетов пользователя и генерации статуса кнопок.
-
-    Attributes:
-        user_id (str): Telegram ID пользователя.
-
-    """
-
-    user_id: str
-
-    async def get_status_button(self, button: str) -> bool:
-        """Определяет статус кнопки для заданного типа счета.
-        SceneName.to_utility_name(button) - получаем имя модели по названию callback_data.
-
-        Args:
-            button (str): Название кнопки (тип счета).
-
-        Returns:
-            str: Значение иконки, отображающей статус счета. Возвращает:
-                - KeyboardIcon.EMPTY.value ('⚪'), если счет не заполнен.
-                - KeyboardIcon.FILLED.value ('✅'), если счет заполнен.
-
-        """
-        if button is None:
-            button = ''
-        async with async_session() as session:
-            user_accounts: UserAccount = await user_account_crud.get_all_accounts(
-                session,
-                str(self.user_id),
-            )
-        # todo продумать, как действовать при пустом значении аккаунтов:
-        #  либо дефолты создавать DEFAULT_UTILITIES, либо продумать форм
-        #  ??формировать всегда дефолтное количество и дополнять, если что другими??
-        button_name = SceneName.editor_to_utility_name(button)
-        for account_name, account_value in account_values.items():
-            if button_name == account_name:
-                if account_value is None:
-                    return KeyboardIcon.EMPTY.value
-                return KeyboardIcon.FILLED.value
-            return None
-        return None
-
-
 def add_accounts() -> InlineKeyboardMarkup:
+    """ """
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(
@@ -85,31 +43,8 @@ def add_accounts() -> InlineKeyboardMarkup:
     )
 
 
-async def display_accounts_list(user_id: str) -> InlineKeyboardMarkup:
-    """Формирует клавиатуру с кнопками для редактирования счетов пользователя.
-
-    Args:
-        user_id (str): Telegram ID пользователя.
-
-    Returns:
-        InlineKeyboardMarkup: Клавиатура с кнопками, где каждая кнопка
-        отображает статус (пустой или заполненный) соответствующего счета.
-
-    """
-    keyboard_repo = KeyboardStatusAccount(user_id)
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=await keyboard_repo.get_status_button(data) + ' ' + text,
-                    callback_data=data,
-                ),
-            ] for text, data in EDITOR_ACCOUNT_BUTTONS
-        ],
-    )
-
-
 def check_or_add_or_request_account() -> InlineKeyboardMarkup:
+    """ """
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(
@@ -121,5 +56,51 @@ def check_or_add_or_request_account() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(
                 text=KeyboardText.REQUEST_READING.value,
                 callback_data=SceneName.REQUEST_READING.get)],
+        ],
+    )
+
+
+async def get_icon_status_button(
+        scene_name: str,
+) -> KeyboardIcon | None:
+    """Определяет статус кнопки для заданного типа счета.
+    SceneName.editor_to_utility_name(scene_name) - получаем имя услуги (UtilityName).
+
+    Returns:
+        str: Значение иконки, отображающей статус счета. Возвращает:
+            - KeyboardIcon.EMPTY.value ('⚪'), если счет не заполнен.
+            - KeyboardIcon.FILLED.value ('✅'), если счет заполнен.
+    """
+    button_name = SceneName.editor_to_utility_name(scene_name)
+
+    for account_name, account_value in account_values.items():
+        if button_name == account_name:
+            if account_value is None:
+                return KeyboardIcon.EMPTY.value
+            return KeyboardIcon.FILLED.value
+        return None
+    return None
+
+
+async def display_accounts_list(user_id: str) -> InlineKeyboardMarkup:
+    """Формирует клавиатуру с кнопками для редактирования счетов пользователя.
+
+    """
+    async with async_session() as session:
+        user_accounts: UserAccount = await user_account_crud.get_all_accounts(
+            session,
+            str(user_id),
+        )
+    if not user_accounts:
+        raise EmptyUserAccountList
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=await get_icon_status_button(scene_name) + ' ' + text,
+                    callback_data=scene_name,
+                ),
+            ] for text, scene_name in EDITOR_ACCOUNT_BUTTONS
         ],
     )

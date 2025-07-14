@@ -110,13 +110,13 @@ ACCOUNT_TYPE = {
     UtilityName.OVIO: UtilityType.PHONE.value,
 }
 
+DEFAULT_EMPTY_ACCOUNT_VALUE = ''
 DEFAULT_UTILITIES = [
     UtilityName.ELECTRICITY.value,
     UtilityName.GAS.value,
     UtilityName.GAS_SERVICE.value,
     UtilityName.WATER.value,
 ]
-
 DEFAULT_PERSONAL_SETTINGS = {
     UserPersonalSettings.IS_DELIVERY_BLOCKED.value: False,
     UserPersonalSettings.STATUS.value: Status.NEW.value,
