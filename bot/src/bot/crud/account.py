@@ -18,10 +18,35 @@ from db.models.models import (
     UserProfile,
     UtilityType,
 )
-from settings import DEFAULT_UTILITIES, DEFAULT_EMPTY_ACCOUNT_VALUE
+from settings import DEFAULT_UTILITIES
 
 
 class CRUDUserAccount(CRUDBase):
+    async def get_account(
+            self,
+            session: AsyncSession,
+            telegram_id: str,
+            utility: UtilityName,
+    ) -> Optional[UserAccount]:
+        """Получение счета пользователя по utility_name и telegram_id."""
+        user: UserProfile = await user_crud.get_user_by_tg_id(
+            session, telegram_id,
+        )
+        utility_obj: UtilityType = await utility_crud.get_utility_by_name(
+            session, utility,
+        )
+        if not user or not utility_obj:
+            return None
+        user_id_field = getattr(self.model, 'user_id')
+        utility_type_id_field = getattr(self.model, 'utility_type_id')
+        account = await session.execute(
+            select(self.model).where(
+                (user_id_field == user.id) &
+                (utility_type_id_field == utility_obj.id),
+            ),
+        )
+        return account.scalars().first()
+
     async def create_account(
             self,
             session: AsyncSession,
@@ -69,18 +94,20 @@ class CRUDUserAccount(CRUDBase):
             self,
             session: AsyncSession,
             user_id: int,
-            account: str = DEFAULT_EMPTY_ACCOUNT_VALUE,
             default_utilities: list = DEFAULT_UTILITIES,
     ) -> list[UserAccount]:
-        """Создает дефолтные расчетные счета пользователя,
+        """Создает пустые дефолтные расчетные счета пользователя,
         параметры берутся из настроек проекта.
         """
-        account_objects: list[UserAccount] = []
+        account_objects = []
         for utility_name in default_utilities:
-            account_objects.append(UserAccount(
+            utility_obj: UtilityType = await utility_crud.get_or_create_utility(
+                session,
+                utility_name,
+            )
+            account_objects.append(self.model(
                 user_id=user_id,
-                account=account,
-                utility_name=utility_name,
+                utility_type_id=utility_obj.id,
             ))
         session.add_all(account_objects)
         return account_objects
@@ -102,31 +129,6 @@ class CRUDUserAccount(CRUDBase):
             data,
         )
 
-    async def get_account(
-            self,
-            session: AsyncSession,
-            telegram_id: str,
-            utility: UtilityName,
-    ) -> Optional[UserAccount]:
-        """Получение счета пользователя по utility_name и telegram_id."""
-        user: UserProfile = await user_crud.get_user_by_tg_id(
-            session, telegram_id,
-        )
-        utility_obj: UtilityType = await utility_crud.get_utility_by_name(
-            session, utility,
-        )
-        if not user or not utility_obj:
-            return None
-        user_id_field = getattr(self.model, 'user_id')
-        utility_type_id_field = getattr(self.model, 'utility_type_id')
-        account = await session.execute(
-            select(self.model).where(
-                (user_id_field == user.id) &
-                (utility_type_id_field == utility_obj.id),
-            ),
-        )
-        return account.scalars().first()
-
     async def get_all_accounts(
             self,
             session: AsyncSession,
@@ -139,7 +141,7 @@ class CRUDUserAccount(CRUDBase):
         if not user:
             return []
         result = await session.execute(
-            select(UserAccount).where(UserAccount.user_id == user.id),
+            select(self.model).where(self.model.user_id == user.id),
         )
         return result.scalars().all()
 

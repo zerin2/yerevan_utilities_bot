@@ -6,7 +6,6 @@ from sqlalchemy.orm import selectinload
 
 from bot.core.exceptions import EndNoticeInterval404, StartNoticeInterval404
 from bot.core.handle_errors import handle_db_errors
-from bot.crud.account import user_account_crud
 from bot.crud.base import CRUDBase
 from bot.crud.notice import (
     end_notice_interval_crud,
@@ -82,16 +81,11 @@ class CRUDUser(CRUDBase):
         user_telegram_id = str(telegram_id)
         user = await self.get_user_by_tg_id(session, user_telegram_id)
         if not user:
-            user_obj: UserProfile = await self.create_user(
+            new_user: UserProfile = await self.create_user(
                 session,
                 user_telegram_id,
             )
-            await session.flush()
-            await user_account_crud.create_default_accounts(
-                session,
-                user_obj.id,
-            )
-            return user_obj
+            return new_user
         return user
 
     async def update_status(
@@ -183,10 +177,12 @@ class CRUDUser(CRUDBase):
             telegram_id: str,
     ) -> Optional[UserProfile]:
         query = select(
-            self.model,
+            self.model
         ).options(
             selectinload(self.model.start_notice_interval),
-        ).where(self.model.telegram_id == telegram_id)
+        ).where(
+            self.model.telegram_id == telegram_id
+        )
         result_query = await session.execute(query)
         user: UserProfile = result_query.scalar_one_or_none()
         start_notice_interval = user.start_notice_interval

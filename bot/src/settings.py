@@ -1,9 +1,10 @@
+from idlelib.config_key import AVAILABLE_KEYS
 from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
 from bot.enums.notice_enums import NoticeStateEnum, NoticeTypeEnum
-from bot.enums.scene_enums import UtilityName
+from bot.enums.scene_enums import UtilityName, SceneName
 from bot.enums.setting_enums import (
     Status,
     UserPersonalSettings,
@@ -110,13 +111,14 @@ ACCOUNT_TYPE = {
     UtilityName.OVIO: UtilityType.PHONE.value,
 }
 
-DEFAULT_EMPTY_ACCOUNT_VALUE = ''
 DEFAULT_UTILITIES = [
     UtilityName.ELECTRICITY.value,
     UtilityName.GAS.value,
     UtilityName.GAS_SERVICE.value,
     UtilityName.WATER.value,
 ]
+AVAILABLE_UTILITIES = DEFAULT_UTILITIES + []
+
 DEFAULT_PERSONAL_SETTINGS = {
     UserPersonalSettings.IS_DELIVERY_BLOCKED.value: False,
     UserPersonalSettings.STATUS.value: Status.NEW.value,

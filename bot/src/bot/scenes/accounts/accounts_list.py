@@ -1,15 +1,11 @@
 from aiogram import F
-from aiogram.enums import ParseMode
 from aiogram.fsm.scene import Scene, on
 from aiogram.types import CallbackQuery, Message
 
 from bot.core.exceptions import EmptyUserAccountList
 from bot.enums.profile_enums import BotMessage
-from bot.enums.scene_enums import SceneName
-from bot.keyboards.accounts import (
-    EDITOR_ACCOUNT_BUTTONS,
-    display_accounts_list,
-)
+from bot.enums.scene_enums import SceneName, EDITOR_AVAILABLE_SCENE_NAMES
+from bot.keyboards.accounts import display_accounts_list
 from logs.config import bot_logger
 
 
@@ -43,7 +39,8 @@ class ListUtilitiesAccountsScene(
             await event.message.answer(BotMessage.ERROR_LIST_ACCOUNT.value)
 
     @on.callback_query(
-        F.data.in_([button[1] for button in EDITOR_ACCOUNT_BUTTONS]),
+        # F.data.in_([button[1] for button in EDITOR_ACCOUNT_BUTTONS]),
+        F.data.in_(EDITOR_AVAILABLE_SCENE_NAMES),  # todo проверить работоспособность
     )
     async def handle_account_selection(self, callback: CallbackQuery) -> None:
         await callback.answer()

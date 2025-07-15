@@ -169,7 +169,7 @@ class UserAccount(BaseModel, DateTimeMixin):
     )
     account: Mapped[str] = mapped_column(
         String(FieldLength.ACCOUNT.value),
-        nullable=False,
+        nullable=True,
         index=True,
         doc='Расчетный счет пользователя.',
     )

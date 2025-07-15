@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Any
 
 from aiogram import F
+from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.scene import Scene, on
 from aiogram.types import CallbackQuery, Message
@@ -63,12 +64,12 @@ class EditAccountScene(Scene):
         if utility_type == 'code':
             await callback.message.answer(
                 BotMessage.EDIT_ACCOUNT.value.format(utility=utility.value),
-                parse_mode='Markdown',
+                parse_mode=ParseMode.MARKDOWN,
             )
         elif utility_type == 'phone':
             await callback.message.answer(
                 BotMessage.EDIT_PHONE.value.format(utility=utility.value),
-                parse_mode='Markdown',
+                parse_mode=ParseMode.MARKDOWN,
             )
 
     @on.message()
@@ -98,7 +99,7 @@ class EditAccountScene(Scene):
                 BotMessage.SUCCESS_EDIT.value.format(
                     account_number=cleaned_value,
                 ),
-                parse_mode='Markdown',
+                parse_mode=ParseMode.MARKDOWN,
                 reply_markup=main_kb(),
             )
             current_state = await state.get_state()

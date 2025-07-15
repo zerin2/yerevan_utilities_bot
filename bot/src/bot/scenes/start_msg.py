@@ -2,6 +2,7 @@ from aiogram import F
 from aiogram.fsm.scene import Scene, on
 from aiogram.types import CallbackQuery, Message
 
+from bot.crud.account import user_account_crud
 from bot.crud.user import user_crud
 from bot.enums.profile_enums import BotMessage
 from bot.enums.scene_enums import SceneName
@@ -9,14 +10,14 @@ from bot.enums.setting_enums import Status, UserPersonalSettings
 from bot.keyboards.accounts import CALLBACK_DATA_ACCOUNT_KEYBOARD, add_accounts
 from bot.keyboards.main import display_debt, main_kb, mini_main_kb
 from db.core import async_session
-from db.models.models import StatusType, UserProfile
+from db.models.models import StatusType, UserProfile, UserAccount
 from settings import DEFAULT_PERSONAL_SETTINGS
 
 
 class StartMsgScene(Scene, state=SceneName.START_MSG.value):
     """Отправляет приветственное сообщение и подключает основную клавиатуру
     и проверяет, есть ли у пользователя связанные настройки.
-    Сохраняет в бд дефолтные настройки.
+    Создает для новых пользователей дефолтные счета и настройки.
     """
 
     @on.message.enter()
@@ -33,7 +34,15 @@ class StartMsgScene(Scene, state=SceneName.START_MSG.value):
                 str(user_telegram_id),
             )
             await session.flush()
-
+            user_accounts: UserAccount = await user_account_crud.get_all_accounts(
+                session,
+                str(user_telegram_id),
+            )
+            if not user_accounts:
+                await user_account_crud.create_default_accounts(
+                    session,
+                    user_obj.id,
+                )
             user_status_id = user_obj.status_id
             if not user_status_id:
                 await user_crud.update_status(

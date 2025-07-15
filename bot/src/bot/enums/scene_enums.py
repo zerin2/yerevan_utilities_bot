@@ -1,6 +1,7 @@
 from enum import Enum
 
 from bot.enums.utility_enums import UtilityLabel, UtilityName
+from settings import AVAILABLE_UTILITIES
 
 
 class SceneName(Enum):
@@ -90,3 +91,10 @@ class SceneName(Enum):
             SceneName.OVIO.editor: UtilityName.OVIO.value,
         }
         return mapping.get(value)
+
+
+# Список доступных editor-сцен для утилит из AVAILABLE_UTILITIES
+EDITOR_AVAILABLE_SCENE_NAMES = [
+    getattr(SceneName, utility.name).editor
+    for utility in UtilityName if utility in AVAILABLE_UTILITIES
+]

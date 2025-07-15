@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -17,7 +15,6 @@ CALLBACK_DATA_ACCOUNT_KEYBOARD = [
     SceneName.DATA.check,
     SceneName.LIST_UTILITIES.display,
     SceneName.REQUEST_READING.get,
-
 ]
 
 EDITOR_ACCOUNT_BUTTONS = [
@@ -33,7 +30,7 @@ EDITOR_ACCOUNT_BUTTONS = [
 
 
 def add_accounts() -> InlineKeyboardMarkup:
-    """ """
+    """Клавиатура добавления счетов."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(
@@ -84,23 +81,33 @@ async def get_icon_status_button(
 
 async def display_accounts_list(user_id: str) -> InlineKeyboardMarkup:
     """Формирует клавиатуру с кнопками для редактирования счетов пользователя.
-
+        pass
     """
     async with async_session() as session:
         user_accounts: UserAccount = await user_account_crud.get_all_accounts(
             session,
             str(user_id),
         )
-    if not user_accounts:
-        raise EmptyUserAccountList
+        if not user_accounts:
+            raise EmptyUserAccountList
 
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
+    # todo
+    #  получаем данные счетов + под них статусы
+    #  наименования счетов + под них кнопки
+    user_account_buttons = [
+
+    ]
+
+
+    result_keyboard = [
             [
                 InlineKeyboardButton(
-                    text=await get_icon_status_button(scene_name) + ' ' + text,
+                    text=await get_icon_status_button(scene_name) + ' ' + utility_label,
                     callback_data=scene_name,
                 ),
-            ] for text, scene_name in EDITOR_ACCOUNT_BUTTONS
-        ],
+            ] for utility_label, scene_name in EDITOR_ACCOUNT_BUTTONS
+        ]
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=result_keyboard,
     )
