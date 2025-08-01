@@ -67,6 +67,7 @@ async def get_icon_status_button(
         str: Значение иконки, отображающей статус счета. Возвращает:
             - KeyboardIcon.EMPTY.value ('⚪'), если счет не заполнен.
             - KeyboardIcon.FILLED.value ('✅'), если счет заполнен.
+
     """
     button_name = SceneName.editor_to_utility_name(scene_name)
 
@@ -81,7 +82,7 @@ async def get_icon_status_button(
 
 async def display_accounts_list(user_id: str) -> InlineKeyboardMarkup:
     """Формирует клавиатуру с кнопками для редактирования счетов пользователя.
-        pass
+    pass
     """
     async with async_session() as session:
         user_accounts: UserAccount = await user_account_crud.get_all_accounts(
@@ -97,7 +98,6 @@ async def display_accounts_list(user_id: str) -> InlineKeyboardMarkup:
     user_account_buttons = [
 
     ]
-
 
     result_keyboard = [
             [

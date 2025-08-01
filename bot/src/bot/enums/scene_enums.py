@@ -96,5 +96,6 @@ class SceneName(Enum):
 # Список доступных editor-сцен для утилит из AVAILABLE_UTILITIES
 EDITOR_AVAILABLE_SCENE_NAMES = [
     getattr(SceneName, utility.name).editor
-    for utility in UtilityName if utility in AVAILABLE_UTILITIES
+    for utility in UtilityName
+    if utility in AVAILABLE_UTILITIES
 ]

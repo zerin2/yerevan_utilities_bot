@@ -177,11 +177,11 @@ class CRUDUser(CRUDBase):
             telegram_id: str,
     ) -> Optional[UserProfile]:
         query = select(
-            self.model
+            self.model,
         ).options(
             selectinload(self.model.start_notice_interval),
         ).where(
-            self.model.telegram_id == telegram_id
+            self.model.telegram_id == telegram_id,
         )
         result_query = await session.execute(query)
         user: UserProfile = result_query.scalar_one_or_none()

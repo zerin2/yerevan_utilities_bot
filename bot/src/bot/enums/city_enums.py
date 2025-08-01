@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class CityName(str, Enum):
+class CityName(StrEnum):
     YEREVAN = 'ереван'
     ABOVYAN = 'абовян'
     ALAVERDI = 'алаверди'

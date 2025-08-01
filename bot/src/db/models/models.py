@@ -105,7 +105,7 @@ class UserProfile(BaseModel, DateTimeMixin):
         String(FieldLength.DELIVERY_ERROR.value),
         nullable=True,
     )
-    status_id: Mapped[Optional[int]] = Column(
+    status_id: Mapped[Optional[int]] = mapped_column(
         Integer,
         ForeignKey('status_type.id', ondelete='SET NULL'),
         nullable=True,
@@ -124,7 +124,7 @@ class UserProfile(BaseModel, DateTimeMixin):
         ForeignKey('start_notice_interval.id', ondelete='SET NULL'),
         nullable=True,
     )
-    end_notice_interval_id: Mapped[Optional[int]] = Column(
+    end_notice_interval_id: Mapped[Optional[int]] = mapped_column(
         Integer,
         ForeignKey('end_notice_interval.id', ondelete='SET NULL'),
         nullable=True,

@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery, Message
 
 from bot.core.exceptions import EmptyUserAccountList
 from bot.enums.profile_enums import BotMessage
-from bot.enums.scene_enums import SceneName, EDITOR_AVAILABLE_SCENE_NAMES
+from bot.enums.scene_enums import EDITOR_AVAILABLE_SCENE_NAMES, SceneName
 from bot.keyboards.accounts import display_accounts_list
 from logs.config import bot_logger
 

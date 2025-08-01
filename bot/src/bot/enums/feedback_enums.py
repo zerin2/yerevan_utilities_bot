@@ -1,12 +1,12 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class FeedbackType(str, Enum):
+class FeedbackType(StrEnum):
     REVIEW = 'review'
     ERROR = 'error'
 
 
-class FeedbackStatus(str, Enum):
+class FeedbackStatus(StrEnum):
     NEW = 'new'
     PROCESSING = 'processing'
     COMPLETED = 'completed'

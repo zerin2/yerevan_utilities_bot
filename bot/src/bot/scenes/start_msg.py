@@ -10,7 +10,7 @@ from bot.enums.setting_enums import Status, UserPersonalSettings
 from bot.keyboards.accounts import CALLBACK_DATA_ACCOUNT_KEYBOARD, add_accounts
 from bot.keyboards.main import display_debt, main_kb, mini_main_kb
 from db.core import async_session
-from db.models.models import StatusType, UserProfile, UserAccount
+from db.models.models import StatusType, UserAccount, UserProfile
 from settings import DEFAULT_PERSONAL_SETTINGS
 
 

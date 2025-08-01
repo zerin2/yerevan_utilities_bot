@@ -1,12 +1,12 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class UtilityType(Enum):
+class UtilityType(StrEnum):
     CODE = 'code'
     PHONE = 'phone'
 
 
-class UtilityName(str, Enum):
+class UtilityName(StrEnum):
     ELECTRICITY = 'electricity'
     GAS = 'gas'
     GAS_SERVICE = 'gas_service'
@@ -17,7 +17,7 @@ class UtilityName(str, Enum):
     OVIO = 'ovio'
 
 
-class UtilityIcon(str, Enum):
+class UtilityIcon(StrEnum):
     LIGHTNING = '⚡'
     FIRE = '🔥'
     TOOLS = '🛠️'
@@ -28,7 +28,7 @@ class UtilityIcon(str, Enum):
     TV = '📺'
 
 
-class UtilityRUS(str, Enum):
+class UtilityRUS(StrEnum):
     ELECTRICITY_RUS = ' Электричество '
     GAS_RUS = ' Газ '
     GAS_SERVICE_RUS = ' Газ (обслуживание) '
@@ -39,7 +39,7 @@ class UtilityRUS(str, Enum):
     OVIO_RUS = ' OVIO | Rostelecom '
 
 
-class UtilityLabel(str, Enum):
+class UtilityLabel(StrEnum):
     ELECTRICITY = UtilityRUS.ELECTRICITY_RUS.value + UtilityIcon.LIGHTNING.value
     GAS = UtilityRUS.GAS_RUS.value + UtilityIcon.FIRE.value
     GAS_SERVICE = UtilityRUS.GAS_SERVICE_RUS.value + UtilityIcon.TOOLS.value

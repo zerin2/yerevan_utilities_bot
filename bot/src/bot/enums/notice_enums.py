@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class NoticeStateEnum(str, Enum):
+class NoticeStateEnum(StrEnum):
     ON = 'on'
     OFF = 'off'
 
@@ -14,7 +14,7 @@ class NoticeStateEnum(str, Enum):
         return mapping.get(state, 'Ошибочное состояние')
 
 
-class NoticeTypeEnum(str, Enum):
+class NoticeTypeEnum(StrEnum):
     ANYTIME = 'anytime'
     PERIOD = 'period'
 
@@ -27,12 +27,12 @@ class NoticeTypeEnum(str, Enum):
         return mapping.get(notice_type, 'Ошибочный период')
 
 
-class NoticeFlag(str, Enum):
+class NoticeFlag(StrEnum):
     START = 'start'
     END = 'end'
 
 
-class NoticeInterval(str, Enum):
+class NoticeInterval(StrEnum):
     hour_00 = '00'
     hour_01 = '01'
     hour_02 = '02'

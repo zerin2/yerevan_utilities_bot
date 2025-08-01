@@ -1,23 +1,23 @@
-from enum import Enum
+from enum import Enum, IntEnum, StrEnum
 
 import aiogram.exceptions as exc
 
 
-class Status(Enum):
+class Status(StrEnum):
     NEW = 'new'
     ACTIVE = 'active'
     INACTIVE = 'inactive'
     ERROR = 'error'
 
 
-class UserPersonalSettings(Enum):
+class UserPersonalSettings(StrEnum):
     IS_DELIVERY_BLOCKED= 'is_delivery_blocked'
     STATUS = 'status_id'
     NOTICE_STATE = 'notice_state'
     NOTICE_TYPE = 'notice_type_id'
 
 
-class FieldLength(int, Enum):
+class FieldLength(IntEnum):
     TELEGRAM_ID = 50
     NAME = 50
     SETTINGS = 150

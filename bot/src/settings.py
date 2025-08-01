@@ -1,10 +1,9 @@
-from idlelib.config_key import AVAILABLE_KEYS
 from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
 from bot.enums.notice_enums import NoticeStateEnum, NoticeTypeEnum
-from bot.enums.scene_enums import UtilityName, SceneName
+from bot.enums.scene_enums import UtilityName
 from bot.enums.setting_enums import (
     Status,
     UserPersonalSettings,
@@ -34,8 +33,8 @@ class Settings(BaseSettings):
 
     redis_test_host: str
     redis_host: str
-    redis_port: str
-    redis_parser_db: int
+    redis_port: int
+    redis_bot_db: int
 
     telegram_test_token: str
     telegram_deploy_token: str
