@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     @property
     def get_redis_host(self) -> str:
         if self.debug:
-            return self.test_redis_host
+            return self.redis_test_host
         return self.redis_host
 
     @property
