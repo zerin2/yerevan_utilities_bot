@@ -15,14 +15,6 @@ class CRUDBase(Generic[ModelType]):
     def __init__(self, model: Type[ModelType]):
         self.model = model
 
-    def check_field_name(self, field_name: str) -> None:
-        """Проверяет существование поля в модели."""
-        if not hasattr(self.model, field_name):
-            raise ValueError(
-                f'Поле {field_name} не существует в модели {self.model.__name__}',
-            )
-        return
-
     @handle_db_errors
     async def get_by_id(
             self,
@@ -40,7 +32,6 @@ class CRUDBase(Generic[ModelType]):
             value: Any,
     ) -> Optional[ModelType]:
         """Получение объекта по field_name и value."""
-        self.check_field_name(field_name)
         field = getattr(self.model, field_name)
         db_obj = await session.execute(
             select(self.model).where(field == value),
@@ -59,8 +50,6 @@ class CRUDBase(Generic[ModelType]):
             data: dict[str, Any],
     ) -> ModelType:
         """Создание объекта модели."""
-        for field_name in data.keys():
-            self.check_field_name(field_name)
         db_obj = self.model(**data)
         session.add(db_obj)
         await session.flush()
@@ -73,8 +62,6 @@ class CRUDBase(Generic[ModelType]):
             data: dict[str, Any],
     ) -> ModelType:
         """Обновление объекта модели по id."""
-        for field_name in data.keys():
-            self.check_field_name(field_name)
         db_obj = await self.get_by_id(session, obj_id)
         if db_obj is None:
             raise ValueError(f'Объект с id={obj_id} не найден.')
@@ -91,8 +78,6 @@ class CRUDBase(Generic[ModelType]):
             data: dict[str, Any],
     ) -> ModelType:
         """Обновление объекта модели по field_name и value."""
-        for name in data.keys():
-            self.check_field_name(name)
         db_obj = await self.get_by_field(session, field_name, value)
         if db_obj is None:
             raise ValueError(
